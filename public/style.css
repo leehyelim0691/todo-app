@@ -16,3 +16,29 @@ input#todo-input {
     border: 2px dashed #e77070;
     margin-bottom: 20px;
 }
+
+ul#todo-list {
+    list-style: none;
+    padding: 0;
+}
+
+ul#todo-list li {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+    border-bottom: 1px solid #eee;
+}
+
+button {
+    padding: 8px 12px;
+    font-size: 14px;
+    margin-left: 5px;
+}
+
+.delete-button {
+    padding: 4px 8px;
+    font-size: 12px;
+    margin-left: 10px;
+    cursor: pointer;
+}
