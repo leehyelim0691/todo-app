@@ -42,3 +42,63 @@ export function renderInfo(): HTMLElement {
 
 	return container;
 }
+
+export function setupFilterHandlers(): void {
+	const list = document.getElementById('todo-list') as HTMLUListElement;
+
+	const allButton = document.getElementById('filter-all') as HTMLButtonElement;
+	const activeButton = document.getElementById('filter-active') as HTMLButtonElement;
+	const completedButton = document.getElementById('filter-completed') as HTMLButtonElement;
+
+	const filterButtons = [allButton, activeButton, completedButton];
+
+	function clearSelected(): void {
+		filterButtons.forEach(btn => btn.classList.remove('selected'));
+	}
+
+	function showAll(): void {
+		Array.from(list.children).forEach(item => {
+			(item as HTMLElement).style.display = 'flex';
+		});
+	}
+
+	function showActive(): void {
+		Array.from(list.children).forEach(item => {
+			const span = item.querySelector('span');
+			if (span?.classList.contains('completed')) {
+				(item as HTMLElement).style.display = 'none';
+			} else {
+				(item as HTMLElement).style.display = 'flex';
+			}
+		});
+	}
+
+	function showCompleted(): void {
+		Array.from(list.children).forEach(item => {
+			const span = item.querySelector('span');
+			if (span?.classList.contains('completed')) {
+				(item as HTMLElement).style.display = 'flex';
+			} else {
+				(item as HTMLElement).style.display = 'none';
+			}
+		});
+	}
+
+	allButton.addEventListener('click', () => {
+		clearSelected();
+		allButton.classList.add('selected');
+		showAll();
+	});
+
+	activeButton.addEventListener('click', () => {
+		clearSelected();
+		activeButton.classList.add('selected');
+		showActive();
+	});
+
+	completedButton.addEventListener('click', () => {
+		clearSelected();
+		completedButton.classList.add('selected');
+		showCompleted();
+	});
+}

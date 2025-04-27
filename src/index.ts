@@ -1,6 +1,6 @@
 import {renderInput} from './components/input';
 import { renderList, setupInputHandler } from './components/list';
-import { renderInfo } from './components/info';
+import {renderInfo, setupFilterHandlers} from './components/info';
 
 function init() {
 	const app = document.getElementById('app');
@@ -23,6 +23,7 @@ function init() {
 	app.appendChild(container);
 
 	setupInputHandler();
+	setupFilterHandlers();
 }
 
 // HTML 이 로드된 다음 init() 실행
