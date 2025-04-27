@@ -1,4 +1,4 @@
-import {applyCurrentFilter, updateItemsLeft} from "./info";
+import {applyCurrentFilter, updateClearCompletedButton, updateItemsLeft} from "./info";
 
 let todoIdCounter = 0;
 
@@ -46,13 +46,14 @@ export function setupInputHandler() {
 						sortList();
 						applyCurrentFilter();
 						updateItemsLeft();
+						updateClearCompletedButton();
 					});
 
 					deleteButton.addEventListener('click', () => {
 						li.remove();
 						console.log("todo 삭제")
 						updateItemsLeft();
-
+						updateClearCompletedButton();
 					});
 
 					li.appendChild(span);
@@ -64,6 +65,7 @@ export function setupInputHandler() {
 					console.log("todo 등록")
 
 					updateItemsLeft();
+					updateClearCompletedButton();
 				}
 			}
 		});

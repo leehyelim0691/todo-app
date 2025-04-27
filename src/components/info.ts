@@ -122,3 +122,34 @@ export function applyCurrentFilter(): void {
 		}
 	});
 }
+
+export function updateClearCompletedButton(): void {
+	const list = document.getElementById('todo-list') as HTMLUListElement;
+	const clearButton = document.getElementById('clear-completed') as HTMLButtonElement;
+
+	const completedCount = Array.from(list.children).filter(item => {
+		const span = item.querySelector('span');
+		return span && span.classList.contains('completed');
+	}).length;
+	console.log("...uypdate : ",completedCount)
+
+	clearButton.textContent = `Clear Completed (${completedCount})`;
+}
+
+export function setupClearCompletedHandler(): void {
+	const list = document.getElementById('todo-list') as HTMLUListElement;
+	const clearButton = document.getElementById('clear-completed') as HTMLButtonElement;
+
+	clearButton.addEventListener('click', () => {
+		Array.from(list.children).forEach(item => {
+			const span = item.querySelector('span');
+			if (span && span.classList.contains('completed')) {
+				list.removeChild(item);
+			}
+		});
+
+		applyCurrentFilter();
+		updateItemsLeft();
+		updateClearCompletedButton();
+	});
+}
