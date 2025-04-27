@@ -17,10 +17,20 @@ export function setupInputHandler() {
 
 					const span = document.createElement('span');
 					span.textContent = value;
+					span.className = 'todo-text';
 
 					const deleteButton = document.createElement('button');
 					deleteButton.textContent = '삭제';
 					deleteButton.className = 'delete-button';
+
+					li.addEventListener('click', (e: MouseEvent): void => {
+						if ((e.target as HTMLElement).tagName === 'BUTTON') {
+							return;
+						}
+						span.classList.toggle('completed');
+						console.log("todo 완료 토글")
+					});
+
 					deleteButton.addEventListener('click', () => {
 						li.remove();
 						console.log("todo 삭제")
