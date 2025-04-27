@@ -9,20 +9,22 @@ function init() {
 		return;
 	}
 
-	// 입력부
-	const inputSection = renderInput();
-	app.appendChild(inputSection);
+	const container = document.createElement('div');
+	container.className = 'todo-container';
 
-	// 목록 출력부
-	const listSection = renderList();
-	app.appendChild(listSection);
+	const inputSection = renderInput(); // 입력부
+	const listSection = renderList(); // 목록 출력부
+	const infoSection = renderInfo(); // 정보 출력부
 
-	// 정보 출력부
-	const infoSection = renderInfo();
-	// app.appendChild(infoSection);
+	container.appendChild(inputSection);
+	container.appendChild(listSection);
+	container.appendChild(infoSection);
+
+	app.appendChild(container);
 
 	setupInputHandler();
 }
 
 // HTML 이 로드된 다음 init() 실행
 document.addEventListener('DOMContentLoaded', init);
+
