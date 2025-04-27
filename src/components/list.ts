@@ -1,3 +1,5 @@
+import {applyCurrentFilter, updateItemsLeft} from "./info";
+
 let todoIdCounter = 0;
 
 export function renderList(): HTMLElement {
@@ -41,41 +43,16 @@ export function setupInputHandler() {
 							console.log("todo 미완료 토글");
 						}
 
-						const items = Array.from(list.children) as HTMLElement[];
-
-						// 미완료 항목과 완료 항목 분리
-						const activeItems = items
-							.filter(item => {
-								const innerSpan = item.querySelector('span');
-								return innerSpan && !innerSpan.classList.contains('completed');
-							})
-							.sort((a, b) => {
-								const idA = Number(a.dataset.id);
-								const idB = Number(b.dataset.id);
-								return idB - idA; // 내림차순 정렬
-							});
-
-						const completedItems = items.filter(item => {
-							const innerSpan = item.querySelector('span');
-							return innerSpan && innerSpan.classList.contains('completed');
-						});
-
-						// 리스트 비우고 다시 append
-						list.innerHTML = '';
-
-						activeItems.forEach(item => {
-							list.appendChild(item);
-						});
-
-						completedItems.forEach(item => {
-							list.appendChild(item);
-						});
+						sortList();
+						applyCurrentFilter();
+						updateItemsLeft();
 					});
-
 
 					deleteButton.addEventListener('click', () => {
 						li.remove();
 						console.log("todo 삭제")
+						updateItemsLeft();
+
 					});
 
 					li.appendChild(span);
@@ -85,8 +62,36 @@ export function setupInputHandler() {
 					input.value = '';
 
 					console.log("todo 등록")
+
+					updateItemsLeft();
 				}
 			}
 		});
 	}
+}
+
+export function sortList(): void {
+	const list = document.getElementById('todo-list') as HTMLUListElement;
+	const items = Array.from(list.children) as HTMLElement[];
+
+	const activeItems = items
+		.filter(item => {
+			const span = item.querySelector('span');
+			return span && !span.classList.contains('completed');
+		})
+		.sort((a, b) => {
+			const idA = Number(a.dataset.id);
+			const idB = Number(b.dataset.id);
+			return idB - idA; // id 기준 내림차순
+		});
+
+	const completedItems = items.filter(item => {
+		const span = item.querySelector('span');
+		return span && span.classList.contains('completed');
+	});
+
+	list.innerHTML = '';
+
+	activeItems.forEach(item => list.appendChild(item));
+	completedItems.forEach(item => list.appendChild(item));
 }

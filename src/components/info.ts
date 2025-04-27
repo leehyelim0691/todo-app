@@ -43,9 +43,9 @@ export function renderInfo(): HTMLElement {
 	return container;
 }
 
-export function setupFilterHandlers(): void {
-	const list = document.getElementById('todo-list') as HTMLUListElement;
+let currentFilter: 'all' | 'active' | 'completed' = 'all';
 
+export function setupFilterHandlers(): void {
 	const allButton = document.getElementById('filter-all') as HTMLButtonElement;
 	const activeButton = document.getElementById('filter-active') as HTMLButtonElement;
 	const completedButton = document.getElementById('filter-completed') as HTMLButtonElement;
@@ -56,49 +56,69 @@ export function setupFilterHandlers(): void {
 		filterButtons.forEach(btn => btn.classList.remove('selected'));
 	}
 
-	function showAll(): void {
-		Array.from(list.children).forEach(item => {
-			(item as HTMLElement).style.display = 'flex';
-		});
-	}
-
-	function showActive(): void {
-		Array.from(list.children).forEach(item => {
-			const span = item.querySelector('span');
-			if (span?.classList.contains('completed')) {
-				(item as HTMLElement).style.display = 'none';
-			} else {
-				(item as HTMLElement).style.display = 'flex';
-			}
-		});
-	}
-
-	function showCompleted(): void {
-		Array.from(list.children).forEach(item => {
-			const span = item.querySelector('span');
-			if (span?.classList.contains('completed')) {
-				(item as HTMLElement).style.display = 'flex';
-			} else {
-				(item as HTMLElement).style.display = 'none';
-			}
-		});
-	}
-
 	allButton.addEventListener('click', () => {
 		clearSelected();
 		allButton.classList.add('selected');
-		showAll();
+		currentFilter = 'all';
+		applyCurrentFilter();
+		updateItemsLeft();
 	});
 
 	activeButton.addEventListener('click', () => {
 		clearSelected();
 		activeButton.classList.add('selected');
-		showActive();
+		currentFilter = 'active';
+		applyCurrentFilter();
+		updateItemsLeft();
 	});
 
 	completedButton.addEventListener('click', () => {
 		clearSelected();
 		completedButton.classList.add('selected');
-		showCompleted();
+		currentFilter = 'completed';
+		applyCurrentFilter();
+		updateItemsLeft();
+	});
+}
+
+export function updateItemsLeft(): void {
+	const list = document.getElementById('todo-list') as HTMLUListElement;
+	const itemsLeftSpan = document.getElementById('items-left') as HTMLSpanElement;
+	const todos = Array.from(list.children) as HTMLElement[];
+
+	let count = 0;
+
+	if (currentFilter === 'all') {
+		count = todos.length;
+	} else if (currentFilter === 'active') {
+		count = todos.filter(item => {
+			const span = item.querySelector('span');
+			return span && !span.classList.contains('completed');
+		}).length;
+	} else if (currentFilter === 'completed') {
+		count = todos.filter(item => {
+			const span = item.querySelector('span');
+			return span && span.classList.contains('completed');
+		}).length;
+	}
+
+	itemsLeftSpan.textContent = `${count} items left`;
+}
+
+export function applyCurrentFilter(): void {
+	const list = document.getElementById('todo-list') as HTMLUListElement;
+	const items = Array.from(list.children) as HTMLElement[];
+
+	items.forEach(item => {
+		const span = item.querySelector('span');
+		if (!span) return;
+
+		if (currentFilter === 'all') {
+			item.style.display = 'flex';
+		} else if (currentFilter === 'active') {
+			item.style.display = span.classList.contains('completed') ? 'none' : 'flex';
+		} else if (currentFilter === 'completed') {
+			item.style.display = span.classList.contains('completed') ? 'flex' : 'none';
+		}
 	});
 }
