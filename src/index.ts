@@ -1,4 +1,4 @@
-import { renderInput } from './components/input';
+import {renderInput, setupInputHandler} from './components/input';
 import { renderList } from './components/list';
 import { renderInfo } from './components/info';
 
@@ -20,6 +20,8 @@ function init() {
 	// 정보 출력부
 	const infoSection = renderInfo();
 	// app.appendChild(infoSection);
+
+	setupInputHandler();
 }
 
 // HTML 이 로드된 다음 init() 실행
