@@ -1,5 +1,5 @@
-import {renderInput, setupInputHandler} from './components/input';
-import { renderList } from './components/list';
+import {renderInput} from './components/input';
+import { renderList, setupInputHandler } from './components/list';
 import { renderInfo } from './components/info';
 
 function init() {
