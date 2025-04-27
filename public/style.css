@@ -10,16 +10,23 @@ body {
     width: 500px;
 }
 
+.todo-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
 input#todo-input {
-    width: 90%;
+    width: 95%;
     padding: 10px;
     border: 2px dashed #e77070;
-    margin-bottom: 20px;
+    margin-bottom: 0;
 }
 
 ul#todo-list {
     list-style: none;
     padding: 0;
+    margin: 0;
 }
 
 ul#todo-list li {
@@ -46,4 +53,30 @@ button {
 .completed {
     text-decoration: line-through;
     color: #ccc;
+}
+
+.info-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 14px;
+}
+
+.filters {
+    display: flex;
+    gap: 10px;
+}
+
+.filter-button {
+    padding: 4px 8px;
+    cursor: pointer;
+}
+
+.filter-button.selected {
+    color: red;
+}
+
+.clear-button {
+    padding: 4px 10px;
+    cursor: pointer;
 }
