@@ -107,6 +107,11 @@ export function sortList(): void {
 function startDrag(e: MouseEvent, el: HTMLElement) {
 	if ((e.target as HTMLElement).tagName === 'BUTTON') return;
 
+	const span = el.querySelector('.todo-text');
+	if (span?.classList.contains('completed')) {
+		return; // 완료된 항목이면 드래그 시작 안함
+	}
+
 	draggingEl = el;
 	isDragging = true;
 
@@ -129,8 +134,13 @@ function handleMouseMove(e: MouseEvent) {
 
 	targetEl = afterElement;
 
-	// 새로 강조
+	// 미완료된 항목만 target 으로 선택
 	if (targetEl) {
+		const span = targetEl.querySelector('.todo-text');
+		if (span?.classList.contains('completed')) {
+			targetEl = null;
+			return;
+		}
 		targetEl.style.borderLeft = '4px solid limegreen';
 	}
 }
@@ -148,6 +158,8 @@ function handleMouseUp(e: MouseEvent) {
 		}
 
 		targetEl.style.borderLeft = '';
+
+		console.log("todo 드래그앤드롭")
 	}
 
 	draggingEl.style.opacity = '1';
