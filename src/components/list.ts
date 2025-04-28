@@ -117,6 +117,7 @@ function startDrag(e: MouseEvent, el: HTMLElement) {
 
 	document.addEventListener('mousemove', handleMouseMove);
 	document.addEventListener('mouseup', handleMouseUp);
+	document.addEventListener('keydown', handleKeyDown);
 
 	el.style.opacity = '0.5';
 }
@@ -198,6 +199,7 @@ function handleMouseUp(e: MouseEvent) {
 
 	document.removeEventListener('mousemove', handleMouseMove);
 	document.removeEventListener('mouseup', handleMouseUp);
+	document.removeEventListener('keydown', handleKeyDown);
 }
 
 function getDragAfterElement(container: HTMLElement, y: number): HTMLElement | null {
@@ -210,4 +212,11 @@ function getDragAfterElement(container: HTMLElement, y: number): HTMLElement | n
 	}
 
 	return null;
+}
+
+function handleKeyDown(e: KeyboardEvent) {
+	if (e.key === 'Escape' && isDragging) {
+		cancelDrag();
+		console.log("todo 드래그앤드롭 취소");
+	}
 }
