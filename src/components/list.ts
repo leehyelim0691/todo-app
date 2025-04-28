@@ -121,10 +121,36 @@ function startDrag(e: MouseEvent, el: HTMLElement) {
 	el.style.opacity = '0.5';
 }
 
+function cancelDrag() {
+	if (!isDragging || !draggingEl) return;
+
+	if (targetEl) {
+		targetEl.style.borderLeft = '';
+	}
+
+	draggingEl.style.opacity = '1';
+	isDragging = false;
+	draggingEl = null;
+	targetEl = null;
+}
+
 function handleMouseMove(e: MouseEvent) {
 	if (!isDragging || !draggingEl) return;
 
 	const list = document.getElementById('todo-list') as HTMLElement;
+	const listRect = list.getBoundingClientRect(); // 리스트 위치 정보 가져오기
+
+	// 리스트 영역 벗어났는지 체크
+	if (
+		e.clientX < listRect.left ||
+		e.clientX > listRect.right ||
+		e.clientY < listRect.top ||
+		e.clientY > listRect.bottom
+	) {
+		cancelDrag();
+		return;
+	}
+
 	const afterElement = getDragAfterElement(list, e.clientY);
 
 	// 이전에 있던 강조 제거
@@ -146,7 +172,10 @@ function handleMouseMove(e: MouseEvent) {
 }
 
 function handleMouseUp(e: MouseEvent) {
-	if (!isDragging || !draggingEl) return;
+	if (!isDragging || !draggingEl) {
+		console.log("todo 드래그앤드롭 취소");
+		return;
+	}
 
 	if (targetEl) {
 		const list = document.getElementById('todo-list') as HTMLElement;
