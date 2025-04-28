@@ -1,6 +1,9 @@
-import {applyCurrentFilter, updateClearCompletedButton, updateItemsLeft} from "./info";
+import { applyCurrentFilter, updateClearCompletedButton, updateItemsLeft } from "./info";
 
 let todoIdCounter = 0;
+let draggingEl: HTMLElement | null = null;
+let isDragging = false;
+let targetEl: HTMLElement | null = null;
 
 export function renderList(): HTMLElement {
 	const list = document.createElement('ul');
@@ -49,6 +52,8 @@ export function setupInputHandler() {
 						updateClearCompletedButton();
 					});
 
+					li.addEventListener('mousedown', (e) => startDrag(e, li));
+
 					deleteButton.addEventListener('click', () => {
 						li.remove();
 						console.log("todo 삭제")
@@ -96,4 +101,72 @@ export function sortList(): void {
 
 	activeItems.forEach(item => list.appendChild(item));
 	completedItems.forEach(item => list.appendChild(item));
+}
+
+
+function startDrag(e: MouseEvent, el: HTMLElement) {
+	if ((e.target as HTMLElement).tagName === 'BUTTON') return;
+
+	draggingEl = el;
+	isDragging = true;
+
+	document.addEventListener('mousemove', handleMouseMove);
+	document.addEventListener('mouseup', handleMouseUp);
+
+	el.style.opacity = '0.5';
+}
+
+function handleMouseMove(e: MouseEvent) {
+	if (!isDragging || !draggingEl) return;
+
+	const list = document.getElementById('todo-list') as HTMLElement;
+	const afterElement = getDragAfterElement(list, e.clientY);
+
+	// 이전에 있던 강조 제거
+	if (targetEl) {
+		targetEl.style.borderLeft = '';
+	}
+
+	targetEl = afterElement;
+
+	// 새로 강조
+	if (targetEl) {
+		targetEl.style.borderLeft = '4px solid limegreen';
+	}
+}
+
+function handleMouseUp(e: MouseEvent) {
+	if (!isDragging || !draggingEl) return;
+
+	if (targetEl) {
+		const list = document.getElementById('todo-list') as HTMLElement;
+
+		if (targetEl.nextSibling) {
+			list.insertBefore(draggingEl, targetEl.nextSibling);
+		} else {
+			list.appendChild(draggingEl);
+		}
+
+		targetEl.style.borderLeft = '';
+	}
+
+	draggingEl.style.opacity = '1';
+	isDragging = false;
+	draggingEl = null;
+	targetEl = null;
+
+	document.removeEventListener('mousemove', handleMouseMove);
+	document.removeEventListener('mouseup', handleMouseUp);
+}
+
+function getDragAfterElement(container: HTMLElement, y: number): HTMLElement | null {
+	const elements = document.elementsFromPoint(window.innerWidth / 2, y);
+
+	for (const el of elements) {
+		if (el.classList.contains('todo-item')) {
+			return el as HTMLElement;
+		}
+	}
+
+	return null;
 }
