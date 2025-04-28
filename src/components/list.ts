@@ -4,6 +4,7 @@ let todoIdCounter = 0;
 let draggingEl: HTMLElement | null = null;
 let isDragging = false;
 let targetEl: HTMLElement | null = null;
+let mirrorEl: HTMLElement | null = null;
 
 export function renderList(): HTMLElement {
 	const list = document.createElement('ul');
@@ -119,7 +120,18 @@ function startDrag(e: MouseEvent, el: HTMLElement) {
 	document.addEventListener('mouseup', handleMouseUp);
 	document.addEventListener('keydown', handleKeyDown);
 
-	el.style.opacity = '0.5';
+	el.style.opacity = '0.3';
+
+	mirrorEl = el.cloneNode(true) as HTMLElement;
+	mirrorEl.classList.add('mirror');
+
+	const rect = el.getBoundingClientRect();
+	mirrorEl.style.width = rect.width + 'px';
+	mirrorEl.style.height = rect.height + 'px';
+
+	document.body.appendChild(mirrorEl);
+
+	updateMirrorPosition(e.clientX, e.clientY); // 시작 위치 잡기
 }
 
 function cancelDrag() {
@@ -127,6 +139,11 @@ function cancelDrag() {
 
 	if (targetEl) {
 		targetEl.style.borderLeft = '';
+	}
+
+	if (mirrorEl && mirrorEl.parentNode) {
+		mirrorEl.parentNode.removeChild(mirrorEl);
+		mirrorEl = null;
 	}
 
 	draggingEl.style.opacity = '1';
@@ -137,6 +154,10 @@ function cancelDrag() {
 
 function handleMouseMove(e: MouseEvent) {
 	if (!isDragging || !draggingEl) return;
+
+	if (mirrorEl) {
+		updateMirrorPosition(e.clientX, e.clientY);
+	}
 
 	const list = document.getElementById('todo-list') as HTMLElement;
 	const listRect = list.getBoundingClientRect(); // 리스트 위치 정보 가져오기
@@ -176,6 +197,11 @@ function handleMouseUp(e: MouseEvent) {
 	if (!isDragging || !draggingEl) {
 		console.log("todo 드래그앤드롭 취소");
 		return;
+	}
+
+	if (mirrorEl && mirrorEl.parentNode) {
+		mirrorEl.parentNode.removeChild(mirrorEl);
+		mirrorEl = null;
 	}
 
 	if (targetEl) {
@@ -219,4 +245,10 @@ function handleKeyDown(e: KeyboardEvent) {
 		cancelDrag();
 		console.log("todo 드래그앤드롭 취소");
 	}
+}
+
+function updateMirrorPosition(x: number, y: number) {
+	if (!mirrorEl) return;
+	mirrorEl.style.left = x + 10 + 'px';
+	mirrorEl.style.top = y + 10 + 'px';
 }
