@@ -5,6 +5,7 @@ let draggingEl: HTMLElement | null = null;
 let isDragging = false;
 let targetEl: HTMLElement | null = null;
 let mirrorEl: HTMLElement | null = null;
+let previewTimer: number | null = null;
 
 export function renderList(): HTMLElement {
 	const list = document.createElement('ul');
@@ -150,6 +151,8 @@ function cancelDrag() {
 	isDragging = false;
 	draggingEl = null;
 	targetEl = null;
+
+	clearPreviewTimer();
 }
 
 function handleMouseMove(e: MouseEvent) {
@@ -175,21 +178,47 @@ function handleMouseMove(e: MouseEvent) {
 
 	const afterElement = getDragAfterElement(list, e.clientY);
 
-	// 이전에 있던 강조 제거
-	if (targetEl) {
+	// target 바뀌면
+	if (targetEl && targetEl !== afterElement) {
 		targetEl.style.borderLeft = '';
+		clearPreviewTimer(); // 타이머 초기화
 	}
 
 	targetEl = afterElement;
 
 	// 미완료된 항목만 target 으로 선택
 	if (targetEl) {
+		targetEl.style.borderLeft = '';	// 이전에 있던 강조 제거
+
 		const span = targetEl.querySelector('.todo-text');
 		if (span?.classList.contains('completed')) {
 			targetEl = null;
 			return;
 		}
 		targetEl.style.borderLeft = '4px solid limegreen';
+
+		// 프리뷰용 타이머 설정
+		clearPreviewTimer();
+		previewTimer = window.setTimeout(() => {
+			if (targetEl && draggingEl) {
+				// 이동하기 전에 현재 targetEl의 border를 지우기
+				targetEl.style.borderLeft = '';
+
+				const list = document.getElementById('todo-list') as HTMLElement;
+
+				if (targetEl.nextSibling) {
+					list.insertBefore(draggingEl, targetEl.nextSibling);
+				} else {
+					list.appendChild(draggingEl);
+				}
+
+				// targetEl을 draggingEl로 새로 잡기
+				targetEl = draggingEl;
+
+				// draggingEl(=새로운 targetEl)에는 다시 초록색 선
+				targetEl.style.borderLeft = '4px solid limegreen';
+			}
+		}, 2000);
 	}
 }
 
@@ -226,6 +255,8 @@ function handleMouseUp(e: MouseEvent) {
 	document.removeEventListener('mousemove', handleMouseMove);
 	document.removeEventListener('mouseup', handleMouseUp);
 	document.removeEventListener('keydown', handleKeyDown);
+
+	clearPreviewTimer();
 }
 
 function getDragAfterElement(container: HTMLElement, y: number): HTMLElement | null {
@@ -251,4 +282,11 @@ function updateMirrorPosition(x: number, y: number) {
 	if (!mirrorEl) return;
 	mirrorEl.style.left = x + 10 + 'px';
 	mirrorEl.style.top = y + 10 + 'px';
+}
+
+function clearPreviewTimer() {
+	if (previewTimer !== null) {
+		clearTimeout(previewTimer);
+		previewTimer = null;
+	}
 }
