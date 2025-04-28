@@ -131,7 +131,6 @@ export function updateClearCompletedButton(): void {
 		const span = item.querySelector('span');
 		return span && span.classList.contains('completed');
 	}).length;
-	console.log("...uypdate : ",completedCount)
 
 	clearButton.textContent = `Clear Completed (${completedCount})`;
 }
