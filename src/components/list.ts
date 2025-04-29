@@ -135,24 +135,33 @@ function startDrag(e: MouseEvent, el: HTMLElement) {
 	updateMirrorPosition(e.clientX, e.clientY); // 시작 위치 잡기
 }
 
-function cancelDrag() {
+function cancelDrag(fullCancel = false) {
 	if (!isDragging || !draggingEl) return;
 
 	if (targetEl) {
 		targetEl.style.borderLeft = '';
 	}
 
-	if (mirrorEl && mirrorEl.parentNode) {
+	// mirror는 진짜 드래그를 "완전히" 취소할 때만 없애기
+	if (fullCancel && mirrorEl && mirrorEl.parentNode) {
 		mirrorEl.parentNode.removeChild(mirrorEl);
 		mirrorEl = null;
 	}
 
-	draggingEl.style.opacity = '1';
-	isDragging = false;
-	draggingEl = null;
-	targetEl = null;
+	if (fullCancel) {
+		draggingEl.style.opacity = '1';
+		isDragging = false;
+		draggingEl = null;
+		targetEl = null;
 
-	clearPreviewTimer();
+		clearPreviewTimer();
+
+		if (fullCancel) {
+			document.removeEventListener('mousemove', handleMouseMove);
+			document.removeEventListener('mouseup', handleMouseUp);
+			document.removeEventListener('keydown', handleKeyDown);
+		}
+	}
 }
 
 function handleMouseMove(e: MouseEvent) {
@@ -172,7 +181,7 @@ function handleMouseMove(e: MouseEvent) {
 		e.clientY < listRect.top ||
 		e.clientY > listRect.bottom
 	) {
-		cancelDrag();
+		cancelDrag(false);
 		return;
 	}
 
@@ -222,7 +231,7 @@ function handleMouseMove(e: MouseEvent) {
 	}
 }
 
-function handleMouseUp(e: MouseEvent) {
+function handleMouseUp() {
 	if (!isDragging || !draggingEl) {
 		console.log("todo 드래그앤드롭 취소");
 		return;
@@ -273,7 +282,7 @@ function getDragAfterElement(container: HTMLElement, y: number): HTMLElement | n
 
 function handleKeyDown(e: KeyboardEvent) {
 	if (e.key === 'Escape' && isDragging) {
-		cancelDrag();
+		cancelDrag(true);
 		console.log("todo 드래그앤드롭 취소");
 	}
 }
