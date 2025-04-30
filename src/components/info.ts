@@ -147,6 +147,8 @@ export function setupClearCompletedHandler(): void {
 			}
 		});
 
+		console.log("todo 완료항목 삭제")
+
 		applyCurrentFilter();
 		updateItemsLeft();
 		updateClearCompletedButton();
