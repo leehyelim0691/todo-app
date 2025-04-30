@@ -130,7 +130,6 @@ function updateClearCompletedButton() {
         var span = item.querySelector('span');
         return span && span.classList.contains('completed');
     }).length;
-    console.log("...uypdate : ", completedCount);
     clearButton.textContent = "Clear Completed (".concat(completedCount, ")");
 }
 function setupClearCompletedHandler() {
@@ -184,13 +183,17 @@ function renderInput() {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   renderList: () => (/* binding */ renderList),
-/* harmony export */   setupDragAndDrop: () => (/* binding */ setupDragAndDrop),
 /* harmony export */   setupInputHandler: () => (/* binding */ setupInputHandler),
 /* harmony export */   sortList: () => (/* binding */ sortList)
 /* harmony export */ });
 /* harmony import */ var _info__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./info */ "./src/components/info.ts");
 
 var todoIdCounter = 0;
+var draggingEl = null;
+var isDragging = false;
+var targetEl = null;
+var mirrorEl = null;
+var previewTimer = null;
 function renderList() {
     var list = document.createElement('ul');
     list.id = 'todo-list';
@@ -230,6 +233,7 @@ function setupInputHandler() {
                         (0,_info__WEBPACK_IMPORTED_MODULE_0__.updateItemsLeft)();
                         (0,_info__WEBPACK_IMPORTED_MODULE_0__.updateClearCompletedButton)();
                     });
+                    li_1.addEventListener('mousedown', function (e) { return startDrag(e, li_1); });
                     deleteButton.addEventListener('click', function () {
                         li_1.remove();
                         console.log("todo 삭제");
@@ -269,90 +273,161 @@ function sortList() {
     activeItems.forEach(function (item) { return list.appendChild(item); });
     completedItems.forEach(function (item) { return list.appendChild(item); });
 }
-var draggingItem = null;
-var guideLine = null;
-var isDragging = false;
-function setupDragAndDrop() {
+function startDrag(e, el) {
+    if (e.target.tagName === 'BUTTON')
+        return;
+    var span = el.querySelector('.todo-text');
+    if (span === null || span === void 0 ? void 0 : span.classList.contains('completed')) {
+        return; // 완료된 항목이면 드래그 시작 안함
+    }
+    draggingEl = el;
+    isDragging = true;
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('keydown', handleKeyDown);
+    el.style.opacity = '0.3';
+    mirrorEl = el.cloneNode(true);
+    mirrorEl.classList.add('mirror');
+    var rect = el.getBoundingClientRect();
+    mirrorEl.style.width = rect.width + 'px';
+    mirrorEl.style.height = rect.height + 'px';
+    document.body.appendChild(mirrorEl);
+    updateMirrorPosition(e.clientX, e.clientY); // 시작 위치 잡기
+}
+function cancelDrag(fullCancel) {
+    if (fullCancel === void 0) { fullCancel = false; }
+    if (!isDragging || !draggingEl)
+        return;
+    if (targetEl) {
+        targetEl.style.borderLeft = '';
+    }
+    // mirror는 진짜 드래그를 "완전히" 취소할 때만 없애기
+    if (fullCancel && mirrorEl && mirrorEl.parentNode) {
+        mirrorEl.parentNode.removeChild(mirrorEl);
+        mirrorEl = null;
+    }
+    if (fullCancel) {
+        draggingEl.style.opacity = '1';
+        isDragging = false;
+        draggingEl = null;
+        targetEl = null;
+        clearPreviewTimer();
+        if (fullCancel) {
+            document.removeEventListener('mousemove', handleMouseMove);
+            document.removeEventListener('mouseup', handleMouseUp);
+            document.removeEventListener('keydown', handleKeyDown);
+        }
+    }
+}
+function handleMouseMove(e) {
+    if (!isDragging || !draggingEl)
+        return;
+    if (mirrorEl) {
+        updateMirrorPosition(e.clientX, e.clientY);
+    }
     var list = document.getElementById('todo-list');
-    list.addEventListener('mousedown', function (e) {
-        var target = e.target;
-        // 버튼 눌렀을 때는 드래그 시작하면 안 됨
-        if (target.tagName === 'BUTTON')
-            return;
-        // 정확히 li 요소 찾아
-        var li = target.closest('li');
-        if (!li)
-            return;
-        // 완료된 아이템이면 드래그 금지
-        var span = li.querySelector('span');
+    var listRect = list.getBoundingClientRect(); // 리스트 위치 정보 가져오기
+    // 리스트 영역 벗어났는지 체크
+    if (e.clientX < listRect.left ||
+        e.clientX > listRect.right ||
+        e.clientY < listRect.top ||
+        e.clientY > listRect.bottom) {
+        cancelDrag(false);
+        return;
+    }
+    var afterElement = getDragAfterElement(list, e.clientY);
+    // target 바뀌면
+    if (targetEl && targetEl !== afterElement) {
+        targetEl.style.borderLeft = '';
+        clearPreviewTimer(); // 타이머 초기화
+    }
+    targetEl = afterElement;
+    // 미완료된 항목만 target 으로 선택
+    if (targetEl) {
+        targetEl.style.borderLeft = ''; // 이전에 있던 강조 제거
+        var span = targetEl.querySelector('.todo-text');
         if (span === null || span === void 0 ? void 0 : span.classList.contains('completed')) {
+            targetEl = null;
             return;
         }
-        draggingItem = li;
-        isDragging = true;
-        guideLine = document.createElement('div');
-        guideLine.style.position = 'absolute';
-        guideLine.style.width = '4px';
-        guideLine.style.height = "".concat(draggingItem.offsetHeight, "px");
-        guideLine.style.backgroundColor = 'limegreen';
-        guideLine.style.zIndex = '1000';
-        guideLine.style.left = '0'; // li 왼쪽
-        guideLine.style.pointerEvents = 'none'; // 드래그 막지 않게
-        var listRect = list.getBoundingClientRect();
-        var itemRect = li.getBoundingClientRect();
-        guideLine.style.top = "".concat(itemRect.top - listRect.top + list.scrollTop, "px");
-        list.appendChild(guideLine);
-        // ✅ 여기서 등록해야 드래그 움직임/드랍 처리 가능
-        document.addEventListener('mousemove', onMouseMove);
-        document.addEventListener('mouseup', onMouseUp);
-    });
-}
-function onMouseMove(e) {
-    if (!isDragging || !draggingItem || !guideLine)
-        return;
-    var list = document.getElementById('todo-list');
-    var items = Array.from(list.children);
-    var targetItem = null;
-    for (var _i = 0, items_1 = items; _i < items_1.length; _i++) {
-        var item = items_1[_i];
-        var rect = item.getBoundingClientRect();
-        if (e.clientY > rect.top && e.clientY < rect.bottom) {
-            targetItem = item;
-            break;
-        }
-    }
-    if (targetItem) {
-        var rect = targetItem.getBoundingClientRect();
-        var listRect = list.getBoundingClientRect();
-        guideLine.style.top = "".concat(rect.top - listRect.top + list.scrollTop, "px");
+        targetEl.style.borderLeft = '4px solid limegreen';
+        // 프리뷰용 타이머 설정
+        clearPreviewTimer();
+        previewTimer = window.setTimeout(function () {
+            if (targetEl && draggingEl) {
+                // 이동하기 전에 현재 targetEl의 border를 지우기
+                targetEl.style.borderLeft = '';
+                var list_1 = document.getElementById('todo-list');
+                if (targetEl.nextSibling) {
+                    list_1.insertBefore(draggingEl, targetEl.nextSibling);
+                }
+                else {
+                    list_1.appendChild(draggingEl);
+                }
+                // targetEl을 draggingEl로 새로 잡기
+                targetEl = draggingEl;
+                // draggingEl(=새로운 targetEl)에는 다시 초록색 선
+                targetEl.style.borderLeft = '4px solid limegreen';
+            }
+        }, 2000);
     }
 }
-function onMouseUp(e) {
-    if (!isDragging || !draggingItem || !guideLine)
+function handleMouseUp() {
+    if (!isDragging || !draggingEl) {
+        console.log("todo 드래그앤드롭 취소");
         return;
-    var list = document.getElementById('todo-list');
-    var items = Array.from(list.children);
-    var insertBeforeItem = null;
-    for (var _i = 0, items_2 = items; _i < items_2.length; _i++) {
-        var item = items_2[_i];
-        var rect = item.getBoundingClientRect();
-        if (e.clientY > rect.top && e.clientY < rect.bottom) {
-            insertBeforeItem = item;
-            break;
-        }
     }
-    if (insertBeforeItem && insertBeforeItem !== draggingItem) {
-        var span = insertBeforeItem.querySelector('span');
-        if (span && !span.classList.contains('completed')) {
-            list.insertBefore(draggingItem, insertBeforeItem);
-        }
+    if (mirrorEl && mirrorEl.parentNode) {
+        mirrorEl.parentNode.removeChild(mirrorEl);
+        mirrorEl = null;
     }
+    if (targetEl) {
+        var list = document.getElementById('todo-list');
+        if (targetEl.nextSibling) {
+            list.insertBefore(draggingEl, targetEl.nextSibling);
+        }
+        else {
+            list.appendChild(draggingEl);
+        }
+        targetEl.style.borderLeft = '';
+        console.log("todo 드래그앤드롭");
+    }
+    draggingEl.style.opacity = '1';
     isDragging = false;
-    draggingItem = null;
-    guideLine === null || guideLine === void 0 ? void 0 : guideLine.remove();
-    guideLine = null;
-    document.removeEventListener('mousemove', onMouseMove);
-    document.removeEventListener('mouseup', onMouseUp);
+    draggingEl = null;
+    targetEl = null;
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+    document.removeEventListener('keydown', handleKeyDown);
+    clearPreviewTimer();
+}
+function getDragAfterElement(container, y) {
+    var elements = document.elementsFromPoint(window.innerWidth / 2, y);
+    for (var _i = 0, elements_1 = elements; _i < elements_1.length; _i++) {
+        var el = elements_1[_i];
+        if (el.classList.contains('todo-item')) {
+            return el;
+        }
+    }
+    return null;
+}
+function handleKeyDown(e) {
+    if (e.key === 'Escape' && isDragging) {
+        cancelDrag(true);
+        console.log("todo 드래그앤드롭 취소");
+    }
+}
+function updateMirrorPosition(x, y) {
+    if (!mirrorEl)
+        return;
+    mirrorEl.style.left = x + 10 + 'px';
+    mirrorEl.style.top = y + 10 + 'px';
+}
+function clearPreviewTimer() {
+    if (previewTimer !== null) {
+        clearTimeout(previewTimer);
+        previewTimer = null;
+    }
 }
 
 
@@ -445,7 +520,6 @@ function init() {
     (0,_components_list__WEBPACK_IMPORTED_MODULE_1__.setupInputHandler)();
     (0,_components_info__WEBPACK_IMPORTED_MODULE_2__.setupFilterHandlers)();
     (0,_components_info__WEBPACK_IMPORTED_MODULE_2__.setupClearCompletedHandler)();
-    (0,_components_list__WEBPACK_IMPORTED_MODULE_1__.setupDragAndDrop)();
 }
 // HTML 이 로드된 다음 init() 실행
 document.addEventListener('DOMContentLoaded', init);
