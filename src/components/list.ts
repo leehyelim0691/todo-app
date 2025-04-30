@@ -1,6 +1,5 @@
 import { applyCurrentFilter, updateClearCompletedButton, updateItemsLeft } from "./info";
 
-
 let todoIdCounter = 0;
 let draggingEl: HTMLElement | null = null;
 let isDragging = false;
@@ -13,6 +12,9 @@ let dragStartX = 0;
 let dragStartY = 0;
 const DRAG_THRESHOLD = 5;
 let clickSuppressedByDrag = false;
+let originalIndex: number | null = null;
+let previewMoved = false;
+let originalNextSibling: ChildNode | null = null;
 
 
 export function renderList(): HTMLElement {
@@ -150,6 +152,10 @@ export function sortList(): void {
 function startDrag(e: MouseEvent, el: HTMLElement) {
 	if ((e.target as HTMLElement).tagName === 'BUTTON') return;
 
+	const list = document.getElementById("todo-list")!;
+	originalIndex = Array.from(list.children).indexOf(el);
+	originalNextSibling = el.nextSibling;
+
 	const span = el.querySelector('.todo-text');
 	if (span?.classList.contains('completed')) {
 		return; // 완료된 항목이면 드래그 시작 안함
@@ -203,6 +209,10 @@ function cancelDrag(fullCancel = false) {
 			document.removeEventListener('keydown', handleKeyDown);
 		}
 	}
+
+	originalIndex = null;
+	originalNextSibling = null;
+	previewMoved = false;
 }
 
 function handleMouseMove(e: MouseEvent) {
@@ -222,13 +232,19 @@ function handleMouseMove(e: MouseEvent) {
 		e.clientY < listRect.top ||
 		e.clientY > listRect.bottom
 	) {
-		cancelDrag(false);
+
+		if (targetEl) {
+			targetEl.style.borderLeft = '';
+			targetEl = null;
+		}
+
+		clearPreviewTimer();
 		return;
 	}
 
 	const afterElement = getDragAfterElement(list, e.clientY);
 
-	// target 바뀌면
+	// target이 바뀌었을 때만 처리
 	if (targetEl && targetEl !== afterElement) {
 		targetEl.style.borderLeft = '';
 		clearPreviewTimer(); // 타이머 초기화
@@ -247,8 +263,10 @@ function handleMouseMove(e: MouseEvent) {
 		}
 		targetEl.style.borderLeft = '4px solid limegreen';
 
-		// 프리뷰용 타이머 설정
+		// 타이머 매번 초기화하고 새로 설정
 		clearPreviewTimer();
+
+		// 프리뷰용 타이머 설정
 		previewTimer = window.setTimeout(() => {
 			if (targetEl && draggingEl) {
 				// 기존 강조 제거
@@ -264,11 +282,12 @@ function handleMouseMove(e: MouseEvent) {
 				const nextEl = targetEl.nextSibling;
 
 				if (isMovingDown && nextEl !== draggingEl) {
-					list.insertBefore(draggingEl, nextEl);
+					list.insertBefore(draggingEl, nextEl!);
 				} else if (!isMovingDown && targetEl !== draggingEl) {
 					list.insertBefore(draggingEl, targetEl);
 				}
 
+				previewMoved = true;
 
 				// 새로운 위치에 강조 다시 적용
 				targetEl = draggingEl;
@@ -281,6 +300,10 @@ function handleMouseMove(e: MouseEvent) {
 
 function handleMouseUp(e : MouseEvent) {
 	if (!isDragging || !draggingEl) {
+		if (draggingEl) {
+			const list = document.getElementById("todo-list")!;
+			list.insertBefore(draggingEl, originalNextSibling!); // nextSibling이 null이면 자동으로 맨 끝으로
+		}
 		console.log("todo 드래그앤드롭 취소");
 		return;
 	}
@@ -295,6 +318,12 @@ function handleMouseUp(e : MouseEvent) {
 		e.clientY < listRect.top ||
 		e.clientY > listRect.bottom
 	) {
+		// 직접 draggingEl 원래 자리로 복구
+		if (draggingEl) {
+			const list = document.getElementById("todo-list")!;
+			list.insertBefore(draggingEl, originalNextSibling!); // nextSibling이 null이면 자동으로 맨 끝으로
+		}
+
 		cancelDrag(true);
 		console.log("todo 드래그앤드롭 취소");
 		return;
@@ -315,7 +344,7 @@ function handleMouseUp(e : MouseEvent) {
 		const nextEl = targetEl.nextSibling;
 
 		if (isMovingDown && nextEl !== draggingEl) {
-			list.insertBefore(draggingEl, nextEl);
+			list.insertBefore(draggingEl, nextEl!);
 		} else if (!isMovingDown && targetEl !== draggingEl) {
 			list.insertBefore(draggingEl, targetEl);
 		}
@@ -353,6 +382,10 @@ function getDragAfterElement(container: HTMLElement, y: number): HTMLElement | n
 
 function handleKeyDown(e: KeyboardEvent) {
 	if (e.key === 'Escape' && isDragging) {
+		if (draggingEl) {
+			const list = document.getElementById("todo-list")!;
+			list.insertBefore(draggingEl, originalNextSibling!); // nextSibling이 null이면 자동으로 맨 끝으로
+		}
 		cancelDrag(true);
 		clickSuppressedByDrag = true;
 		console.log("todo 드래그앤드롭 취소");
@@ -371,3 +404,4 @@ function clearPreviewTimer() {
 		previewTimer = null;
 	}
 }
+
