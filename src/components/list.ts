@@ -1,11 +1,17 @@
 import { applyCurrentFilter, updateClearCompletedButton, updateItemsLeft } from "./info";
 
+
 let todoIdCounter = 0;
 let draggingEl: HTMLElement | null = null;
 let isDragging = false;
 let targetEl: HTMLElement | null = null;
 let mirrorEl: HTMLElement | null = null;
 let previewTimer: number | null = null;
+
+let isMouseDown = false;
+let dragStartX = 0;
+let dragStartY = 0;
+const DRAG_THRESHOLD = 5;
 
 export function renderList(): HTMLElement {
 	const list = document.createElement('ul');
@@ -35,9 +41,7 @@ export function setupInputHandler() {
 					deleteButton.className = 'delete-button';
 
 					li.addEventListener('click', (e: MouseEvent): void => {
-						if ((e.target as HTMLElement).tagName === 'BUTTON') {
-							return;
-						}
+						if ((e.target as HTMLElement).tagName === 'BUTTON') return;
 
 						span.classList.toggle('completed');
 						const isCompleted = span.classList.contains('completed');
@@ -54,7 +58,18 @@ export function setupInputHandler() {
 						updateClearCompletedButton();
 					});
 
-					li.addEventListener('mousedown', (e) => startDrag(e, li));
+					li.addEventListener('mousedown', (e) => {
+						const span = li.querySelector('.todo-text');
+						if (span?.classList.contains('completed')) return;
+
+						isMouseDown = true;
+						draggingEl = li;
+						dragStartX = e.clientX;
+						dragStartY = e.clientY;
+
+						document.addEventListener('mousemove', detectDragStart);
+						document.addEventListener('mouseup', cancelDetectDragStart);
+					});
 
 					deleteButton.addEventListener('click', () => {
 						li.remove();
@@ -78,6 +93,24 @@ export function setupInputHandler() {
 		});
 	}
 }
+
+function detectDragStart(e: MouseEvent) {
+	if (!isMouseDown || !draggingEl) return;
+	const dx = Math.abs(e.clientX - dragStartX);
+	const dy = Math.abs(e.clientY - dragStartY);
+
+	if (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD) {
+		startDrag(e, draggingEl);
+		cancelDetectDragStart();
+	}
+}
+
+function cancelDetectDragStart() {
+	isMouseDown = false;
+	document.removeEventListener('mousemove', detectDragStart);
+	document.removeEventListener('mouseup', cancelDetectDragStart);
+}
+
 
 export function sortList(): void {
 	const list = document.getElementById('todo-list') as HTMLUListElement;
