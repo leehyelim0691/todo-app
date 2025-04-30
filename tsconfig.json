@@ -6,7 +6,8 @@
     "strict": true,
     "esModuleInterop": true,
     "outDir": "./dist",
-    "sourceMap": true
+    "sourceMap": true,
+    "types": ["vitest/globals"]
   },
   "include": ["src"]
 }
