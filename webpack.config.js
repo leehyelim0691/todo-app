@@ -1,5 +1,5 @@
-const path = require('path');
 const ESLintPlugin = require('eslint-webpack-plugin');
+const path = require('path');
 
 module.exports = {
 	mode: 'development',
@@ -13,26 +13,19 @@ module.exports = {
 	module: {
 		rules: [
 			{
-				test: /\.tsx?$/,
+				test: /\.ts$/,
 				use: 'ts-loader',
 				exclude: /node_modules/,
-			},
-			{
-				test: /\.m?js$/,
-				exclude: /node_modules/,
-				use: {
-					loader: 'babel-loader',
-				},
 			},
 		],
 	},
 	resolve: {
-		extensions: ['.tsx', '.ts', '.js'],
+		extensions: ['.ts', '.js'],
 	},
 	plugins: [
-		// new ESLintPlugin({
-		// 	extensions: ['ts', 'tsx', 'js'],
-		// })
+		new ESLintPlugin({
+			overrideConfigFile: path.resolve(__dirname, '.eslintrc.json'),
+		}),
 	],
 	devServer: {
 		static: {
@@ -40,6 +33,7 @@ module.exports = {
 		},
 		hot: true,
 		port: 3000,
-		open: true, // 브라우저 자동 열기
+		open: true,
 	},
 };
+

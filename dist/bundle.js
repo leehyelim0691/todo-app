@@ -18,24 +18,24 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   updateItemsLeft: () => (/* binding */ updateItemsLeft)
 /* harmony export */ });
 function renderInfo() {
-    var container = document.createElement('div');
+    const container = document.createElement('div');
     container.className = 'info-container';
     // 1. 남은 항목 개수 표시
-    var itemsLeft = document.createElement('span');
+    const itemsLeft = document.createElement('span');
     itemsLeft.id = 'items-left';
     itemsLeft.textContent = '0 items left';
     // 2. 필터 버튼 그룹
-    var filters = document.createElement('div');
+    const filters = document.createElement('div');
     filters.className = 'filters';
-    var allButton = document.createElement('button');
+    const allButton = document.createElement('button');
     allButton.id = 'filter-all';
     allButton.className = 'filter-button selected';
     allButton.textContent = 'All';
-    var activeButton = document.createElement('button');
+    const activeButton = document.createElement('button');
     activeButton.id = 'filter-active';
     activeButton.className = 'filter-button';
     activeButton.textContent = 'Active';
-    var completedButton = document.createElement('button');
+    const completedButton = document.createElement('button');
     completedButton.id = 'filter-completed';
     completedButton.className = 'filter-button';
     completedButton.textContent = 'Completed';
@@ -43,7 +43,7 @@ function renderInfo() {
     filters.appendChild(activeButton);
     filters.appendChild(completedButton);
     // 3. 완료된 항목 삭제 버튼
-    var clearCompletedButton = document.createElement('button');
+    const clearCompletedButton = document.createElement('button');
     clearCompletedButton.id = 'clear-completed';
     clearCompletedButton.className = 'clear-button';
     clearCompletedButton.textContent = 'Clear Completed (0)';
@@ -52,30 +52,30 @@ function renderInfo() {
     container.appendChild(clearCompletedButton);
     return container;
 }
-var currentFilter = 'all';
+let currentFilter = 'all';
 function setupFilterHandlers() {
-    var allButton = document.getElementById('filter-all');
-    var activeButton = document.getElementById('filter-active');
-    var completedButton = document.getElementById('filter-completed');
-    var filterButtons = [allButton, activeButton, completedButton];
+    const allButton = document.getElementById('filter-all');
+    const activeButton = document.getElementById('filter-active');
+    const completedButton = document.getElementById('filter-completed');
+    const filterButtons = [allButton, activeButton, completedButton];
     function clearSelected() {
-        filterButtons.forEach(function (btn) { return btn.classList.remove('selected'); });
+        filterButtons.forEach(btn => btn.classList.remove('selected'));
     }
-    allButton.addEventListener('click', function () {
+    allButton.addEventListener('click', () => {
         clearSelected();
         allButton.classList.add('selected');
         currentFilter = 'all';
         applyCurrentFilter();
         updateItemsLeft();
     });
-    activeButton.addEventListener('click', function () {
+    activeButton.addEventListener('click', () => {
         clearSelected();
         activeButton.classList.add('selected');
         currentFilter = 'active';
         applyCurrentFilter();
         updateItemsLeft();
     });
-    completedButton.addEventListener('click', function () {
+    completedButton.addEventListener('click', () => {
         clearSelected();
         completedButton.classList.add('selected');
         currentFilter = 'completed';
@@ -84,32 +84,32 @@ function setupFilterHandlers() {
     });
 }
 function updateItemsLeft() {
-    var list = document.getElementById('todo-list');
-    var itemsLeftSpan = document.getElementById('items-left');
-    var todos = Array.from(list.children);
-    var count = 0;
+    const list = document.getElementById('todo-list');
+    const itemsLeftSpan = document.getElementById('items-left');
+    const todos = Array.from(list.children);
+    let count = 0;
     if (currentFilter === 'all') {
         count = todos.length;
     }
     else if (currentFilter === 'active') {
-        count = todos.filter(function (item) {
-            var span = item.querySelector('span');
+        count = todos.filter(item => {
+            const span = item.querySelector('span');
             return span && !span.classList.contains('completed');
         }).length;
     }
     else if (currentFilter === 'completed') {
-        count = todos.filter(function (item) {
-            var span = item.querySelector('span');
+        count = todos.filter(item => {
+            const span = item.querySelector('span');
             return span && span.classList.contains('completed');
         }).length;
     }
-    itemsLeftSpan.textContent = "".concat(count, " items left");
+    itemsLeftSpan.textContent = `${count} items left`;
 }
 function applyCurrentFilter() {
-    var list = document.getElementById('todo-list');
-    var items = Array.from(list.children);
-    items.forEach(function (item) {
-        var span = item.querySelector('span');
+    const list = document.getElementById('todo-list');
+    const items = Array.from(list.children);
+    items.forEach(item => {
+        const span = item.querySelector('span');
         if (!span)
             return;
         if (currentFilter === 'all') {
@@ -124,20 +124,20 @@ function applyCurrentFilter() {
     });
 }
 function updateClearCompletedButton() {
-    var list = document.getElementById('todo-list');
-    var clearButton = document.getElementById('clear-completed');
-    var completedCount = Array.from(list.children).filter(function (item) {
-        var span = item.querySelector('span');
+    const list = document.getElementById('todo-list');
+    const clearButton = document.getElementById('clear-completed');
+    const completedCount = Array.from(list.children).filter(item => {
+        const span = item.querySelector('span');
         return span && span.classList.contains('completed');
     }).length;
-    clearButton.textContent = "Clear Completed (".concat(completedCount, ")");
+    clearButton.textContent = `Clear Completed (${completedCount})`;
 }
 function setupClearCompletedHandler() {
-    var list = document.getElementById('todo-list');
-    var clearButton = document.getElementById('clear-completed');
-    clearButton.addEventListener('click', function () {
-        Array.from(list.children).forEach(function (item) {
-            var span = item.querySelector('span');
+    const list = document.getElementById('todo-list');
+    const clearButton = document.getElementById('clear-completed');
+    clearButton.addEventListener('click', () => {
+        Array.from(list.children).forEach(item => {
+            const span = item.querySelector('span');
             if (span && span.classList.contains('completed')) {
                 list.removeChild(item);
             }
@@ -163,8 +163,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   renderInput: () => (/* binding */ renderInput)
 /* harmony export */ });
 function renderInput() {
-    var container = document.createElement('div');
-    var input = document.createElement('input');
+    const container = document.createElement('div');
+    const input = document.createElement('input');
     input.id = 'todo-input';
     input.type = 'text';
     input.placeholder = 'What needs to be done?';
@@ -189,253 +189,288 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 /* harmony import */ var _info__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./info */ "./src/components/info.ts");
 /* harmony import */ var _utils_dragUtils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/dragUtils */ "./src/utils/dragUtils.ts");
-/* harmony import */ var _state_dragState__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../state/dragState */ "./src/state/dragState.ts");
-var __spreadArray = (undefined && undefined.__spreadArray) || function (to, from, pack) {
-    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-        if (ar || !(i in from)) {
-            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-            ar[i] = from[i];
-        }
-    }
-    return to.concat(ar || Array.prototype.slice.call(from));
-};
 
 
-
-var todoIdCounter = 0;
-var DRAG_THRESHOLD = 5;
+let todoIdCounter = 0;
+let draggingEl = null;
+let isDragging = false;
+let targetEl = null;
+let mirrorEl = null;
+let previewTimer = null;
+let isMouseDown = false;
+let dragStartX = 0;
+let dragStartY = 0;
+const DRAG_THRESHOLD = 5;
+let clickSuppressedByDrag = false;
+let originalIndex = null;
+let previewMoved = false;
+let originalNextSibling = null;
 function renderList() {
-    var list = document.createElement("ul");
-    list.id = "todo-list";
+    const list = document.createElement('ul');
+    list.id = 'todo-list';
     return list;
 }
 function setupInputHandler() {
-    var input = document.getElementById("todo-input");
-    var list = document.getElementById("todo-list");
-    if (!input || !list)
-        return;
-    input.addEventListener("keydown", function (event) {
-        if (event.key === "Enter") {
-            var value = input.value.trim();
-            if (!value)
-                return;
-            createTodoItem(value);
-            input.value = "";
-        }
-    });
+    const input = document.getElementById('todo-input');
+    const list = document.getElementById('todo-list');
+    if (input && list) {
+        input.addEventListener('keydown', (event) => {
+            if (event.key === 'Enter') {
+                const value = input.value.trim();
+                if (!value)
+                    return;
+                createTodoItem(value);
+                input.value = '';
+            }
+        });
+    }
 }
 function createTodoItem(value) {
-    var list = document.getElementById("todo-list");
-    var li = document.createElement("li");
-    li.className = "todo-item";
-    li.dataset.id = (todoIdCounter++).toString();
-    var span = document.createElement("span");
+    const list = document.getElementById("todo-list");
+    const li = document.createElement('li');
+    li.className = 'todo-item';
+    li.dataset.id = (todoIdCounter++).toString(); // 등록 순서 저장
+    const span = document.createElement('span');
     span.textContent = value;
-    span.className = "todo-text";
-    var deleteButton = document.createElement("button");
-    deleteButton.textContent = "삭제";
-    deleteButton.className = "delete-button";
+    span.className = 'todo-text';
+    const deleteButton = document.createElement('button');
+    deleteButton.textContent = '삭제';
+    deleteButton.className = 'delete-button';
     li.append(span, deleteButton);
     list.prepend(li);
-    li.addEventListener("click", function (e) {
-        if (e.target.tagName === "BUTTON" || _state_dragState__WEBPACK_IMPORTED_MODULE_2__.clickSuppressedByDrag) {
-            _state_dragState__WEBPACK_IMPORTED_MODULE_2__.clickSuppressedByDrag.value = false;
+    li.addEventListener('click', (e) => {
+        if (e.target.tagName === 'BUTTON')
+            return;
+        // 드래그 후 발생한 클릭이면 막기
+        if (clickSuppressedByDrag) {
+            clickSuppressedByDrag = false; // 다음 클릭부터는 정상 처리
             return;
         }
-        span.classList.toggle("completed");
+        span.classList.toggle('completed');
+        const isCompleted = span.classList.contains('completed');
+        if (isCompleted)
+            console.log("todo 완료 토글");
+        else
+            console.log("todo 미완료 토글");
         sortList();
         (0,_info__WEBPACK_IMPORTED_MODULE_0__.applyCurrentFilter)();
         (0,_info__WEBPACK_IMPORTED_MODULE_0__.updateItemsLeft)();
         (0,_info__WEBPACK_IMPORTED_MODULE_0__.updateClearCompletedButton)();
     });
-    li.addEventListener("mousedown", function (e) {
-        if (span.classList.contains("completed"))
+    li.addEventListener('mousedown', (e) => {
+        const span = li.querySelector('.todo-text');
+        if (span === null || span === void 0 ? void 0 : span.classList.contains('completed'))
             return;
-        _state_dragState__WEBPACK_IMPORTED_MODULE_2__.isMouseDown.value = true;
-        _state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value = li;
-        _state_dragState__WEBPACK_IMPORTED_MODULE_2__.dragStartX.value = e.clientX;
-        _state_dragState__WEBPACK_IMPORTED_MODULE_2__.dragStartY.value = e.clientY;
-        document.addEventListener("mousemove", detectDragStart);
-        document.addEventListener("mouseup", cancelDetectDragStart);
+        isMouseDown = true;
+        draggingEl = li;
+        dragStartX = e.clientX;
+        dragStartY = e.clientY;
+        document.addEventListener('mousemove', detectDragStart);
+        document.addEventListener('mouseup', cancelDetectDragStart);
     });
-    deleteButton.addEventListener("click", function () {
+    deleteButton.addEventListener('click', () => {
         li.remove();
+        console.log("todo 삭제");
         (0,_info__WEBPACK_IMPORTED_MODULE_0__.updateItemsLeft)();
         (0,_info__WEBPACK_IMPORTED_MODULE_0__.updateClearCompletedButton)();
     });
+    console.log("todo 등록");
     (0,_info__WEBPACK_IMPORTED_MODULE_0__.updateItemsLeft)();
     (0,_info__WEBPACK_IMPORTED_MODULE_0__.updateClearCompletedButton)();
 }
 function sortList() {
-    var list = document.getElementById("todo-list");
-    var items = Array.from(list.children);
-    var activeItems = items
-        .filter(function (item) { var _a; return !((_a = item.querySelector(".todo-text")) === null || _a === void 0 ? void 0 : _a.classList.contains("completed")); })
-        .sort(function (a, b) { return Number(b.dataset.id) - Number(a.dataset.id); });
-    var completedItems = items.filter(function (item) { var _a; return (_a = item.querySelector(".todo-text")) === null || _a === void 0 ? void 0 : _a.classList.contains("completed"); });
-    list.innerHTML = "";
-    __spreadArray(__spreadArray([], activeItems, true), completedItems, true).forEach(function (item) { return list.appendChild(item); });
+    const list = document.getElementById('todo-list');
+    const items = Array.from(list.children);
+    const activeItems = items
+        .filter(item => { var _a; return !((_a = item.querySelector('.todo-text')) === null || _a === void 0 ? void 0 : _a.classList.contains('completed')); })
+        .sort((a, b) => Number(b.dataset.id) - Number(a.dataset.id));
+    const completedItems = items.filter(item => {
+        const span = item.querySelector('span');
+        return span && span.classList.contains('completed');
+    });
+    list.innerHTML = '';
+    [...activeItems, ...completedItems].forEach((item) => list.appendChild(item));
 }
 function detectDragStart(e) {
-    if (!_state_dragState__WEBPACK_IMPORTED_MODULE_2__.isMouseDown.value || !_state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value)
+    if (!isMouseDown || !draggingEl)
         return;
-    var dx = Math.abs(e.clientX - _state_dragState__WEBPACK_IMPORTED_MODULE_2__.dragStartX.value);
-    var dy = Math.abs(e.clientY - _state_dragState__WEBPACK_IMPORTED_MODULE_2__.dragStartY.value);
+    const dx = Math.abs(e.clientX - dragStartX);
+    const dy = Math.abs(e.clientY - dragStartY);
     if (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD) {
-        startDrag(e);
+        startDrag(e, draggingEl);
         cancelDetectDragStart();
     }
 }
 function cancelDetectDragStart() {
-    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.isMouseDown.value = false;
-    document.removeEventListener("mousemove", detectDragStart);
-    document.removeEventListener("mouseup", cancelDetectDragStart);
+    isMouseDown = false;
+    document.removeEventListener('mousemove', detectDragStart);
+    document.removeEventListener('mouseup', cancelDetectDragStart);
 }
-function startDrag(e) {
-    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.originalNextSibling.value = _state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value.nextSibling;
-    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.isDragging.value = true;
-    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value.style.opacity = "0.3";
-    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.mirrorEl.value = _state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value.cloneNode(true);
-    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.mirrorEl.value.classList.add("mirror");
-    var rect = _state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value.getBoundingClientRect();
-    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.mirrorEl.value.style.width = "".concat(rect.width, "px");
-    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.mirrorEl.value.style.height = "".concat(rect.height, "px");
-    document.body.appendChild(_state_dragState__WEBPACK_IMPORTED_MODULE_2__.mirrorEl.value);
-    (0,_utils_dragUtils__WEBPACK_IMPORTED_MODULE_1__.updateMirrorPosition)(e.clientX, e.clientY, _state_dragState__WEBPACK_IMPORTED_MODULE_2__.mirrorEl.value);
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
-    document.addEventListener("keydown", handleKeyDown);
+function startDrag(e, el) {
+    if (e.target.tagName === 'BUTTON')
+        return;
+    const list = document.getElementById("todo-list");
+    originalIndex = Array.from(list.children).indexOf(el);
+    originalNextSibling = el.nextSibling;
+    const span = el.querySelector('.todo-text');
+    if (span === null || span === void 0 ? void 0 : span.classList.contains('completed')) {
+        return; // 완료된 항목이면 드래그 시작 안함
+    }
+    draggingEl = el;
+    isDragging = true;
+    el.style.opacity = '0.3';
+    const rect = el.getBoundingClientRect();
+    mirrorEl = el.cloneNode(true);
+    mirrorEl.classList.add('mirror');
+    mirrorEl.style.width = rect.width + 'px';
+    mirrorEl.style.height = rect.height + 'px';
+    document.body.appendChild(mirrorEl);
+    (0,_utils_dragUtils__WEBPACK_IMPORTED_MODULE_1__.updateMirrorPosition)(e.clientX, e.clientY, mirrorEl); // 시작 위치 잡기
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('keydown', handleKeyDown);
+}
+function cancelDrag(fullCancel = false) {
+    if (!isDragging || !draggingEl)
+        return;
+    if (targetEl) {
+        targetEl.style.borderLeft = '';
+    }
+    // mirror 는 진짜 드래그를 "완전히" 취소할 때만 없애기
+    if (fullCancel && mirrorEl && mirrorEl.parentNode) {
+        mirrorEl.parentNode.removeChild(mirrorEl);
+        mirrorEl = null;
+    }
+    if (fullCancel) {
+        draggingEl.style.opacity = '1';
+        (0,_utils_dragUtils__WEBPACK_IMPORTED_MODULE_1__.clearPreviewTimer)(previewTimer);
+        cleanupDrag();
+    }
+    originalIndex = null;
+    originalNextSibling = null;
+    previewMoved = false;
 }
 function handleMouseMove(e) {
-    var _a, _b;
-    if (!_state_dragState__WEBPACK_IMPORTED_MODULE_2__.isDragging.value || !_state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value)
+    if (!isDragging || !draggingEl)
         return;
-    (0,_utils_dragUtils__WEBPACK_IMPORTED_MODULE_1__.updateMirrorPosition)(e.clientX, e.clientY, _state_dragState__WEBPACK_IMPORTED_MODULE_2__.mirrorEl.value);
-    var list = document.getElementById("todo-list");
-    var rect = list.getBoundingClientRect();
-    if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
-        (_a = _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value) === null || _a === void 0 ? void 0 : _a.style.removeProperty("border-left");
-        _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value = null;
-        (0,_utils_dragUtils__WEBPACK_IMPORTED_MODULE_1__.clearPreviewTimer)(_state_dragState__WEBPACK_IMPORTED_MODULE_2__.previewTimer.value);
+    if (mirrorEl) {
+        (0,_utils_dragUtils__WEBPACK_IMPORTED_MODULE_1__.updateMirrorPosition)(e.clientX, e.clientY, mirrorEl);
+    }
+    const list = document.getElementById('todo-list');
+    const listRect = list.getBoundingClientRect(); // 리스트 위치 정보 가져오기
+    // 리스트 영역 벗어났는지 체크
+    if ((0,_utils_dragUtils__WEBPACK_IMPORTED_MODULE_1__.isOutsideListArea)(e.clientX, e.clientY, list)) {
+        if (targetEl) {
+            targetEl.style.removeProperty("border-left");
+            targetEl = null;
+        }
+        (0,_utils_dragUtils__WEBPACK_IMPORTED_MODULE_1__.clearPreviewTimer)(previewTimer);
         return;
     }
-    var afterElement = getDragAfterElement(list, e.clientY);
-    if (_state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value && _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value !== afterElement) {
-        _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value.style.removeProperty("border-left");
-        (0,_utils_dragUtils__WEBPACK_IMPORTED_MODULE_1__.clearPreviewTimer)(_state_dragState__WEBPACK_IMPORTED_MODULE_2__.previewTimer.value);
+    const afterElement = getDragAfterElement(list, e.clientY);
+    // target이 바뀌었을 때만 처리
+    if (targetEl && targetEl !== afterElement) {
+        targetEl.style.removeProperty("border-left");
+        (0,_utils_dragUtils__WEBPACK_IMPORTED_MODULE_1__.clearPreviewTimer)(previewTimer); // 타이머 초기화
     }
-    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value = afterElement;
-    if (_state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value && !((_b = _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value.querySelector(".todo-text")) === null || _b === void 0 ? void 0 : _b.classList.contains("completed"))) {
-        _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value.style.borderLeft = "4px solid limegreen";
-        (0,_utils_dragUtils__WEBPACK_IMPORTED_MODULE_1__.clearPreviewTimer)(_state_dragState__WEBPACK_IMPORTED_MODULE_2__.previewTimer.value);
-        _state_dragState__WEBPACK_IMPORTED_MODULE_2__.previewTimer.value = window.setTimeout(function () { return movePreview(); }, 2000);
+    targetEl = afterElement;
+    // 미완료된 항목만 target 으로 선택
+    if (targetEl) {
+        targetEl.style.borderLeft = ''; // 이전에 있던 강조 제거
+        const span = targetEl.querySelector('.todo-text');
+        if (span === null || span === void 0 ? void 0 : span.classList.contains('completed')) {
+            targetEl = null;
+            return;
+        }
+        targetEl.style.borderLeft = '4px solid limegreen';
+        // 타이머 매번 초기화하고 새로 설정
+        (0,_utils_dragUtils__WEBPACK_IMPORTED_MODULE_1__.clearPreviewTimer)(previewTimer);
+        previewTimer = window.setTimeout(() => {
+            if (!targetEl || !draggingEl)
+                return;
+            movePreview();
+            previewMoved = true;
+            targetEl = draggingEl;
+            targetEl.style.borderLeft = '4px solid limegreen';
+        }, 2000);
     }
-}
-function movePreview() {
-    if (!_state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value || !_state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value)
-        return;
-    var list = document.getElementById("todo-list");
-    var targetRect = _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value.getBoundingClientRect();
-    var draggingRect = _state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value.getBoundingClientRect();
-    var isMovingDown = draggingRect.top < targetRect.top;
-    var nextEl = _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value.nextSibling;
-    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value.style.removeProperty("border-left");
-    if (isMovingDown && nextEl !== _state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value) {
-        list.insertBefore(_state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value, nextEl);
-    }
-    else if (!isMovingDown && _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value !== _state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value) {
-        list.insertBefore(_state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value, _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value);
-    }
-    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value = _state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value;
-    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value.style.borderLeft = "4px solid limegreen";
-    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.previewMoved.value = true;
 }
 function handleMouseUp(e) {
-    var _a, _b;
-    if (!_state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value)
-        return;
-    var list = document.getElementById("todo-list");
-    var rect = list.getBoundingClientRect();
-    if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
-        if (_state_dragState__WEBPACK_IMPORTED_MODULE_2__.originalNextSibling.value)
-            list.insertBefore(_state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value, _state_dragState__WEBPACK_IMPORTED_MODULE_2__.originalNextSibling.value);
-        cleanupDrag();
+    if (!isDragging || !draggingEl) {
+        if (draggingEl) {
+            const list = document.getElementById("todo-list");
+            list.insertBefore(draggingEl, originalNextSibling); // nextSibling이 null이면 자동으로 맨 끝으로
+        }
+        console.log("todo 드래그앤드롭 취소");
         return;
     }
-    if ((_a = _state_dragState__WEBPACK_IMPORTED_MODULE_2__.mirrorEl.value) === null || _a === void 0 ? void 0 : _a.parentNode)
-        _state_dragState__WEBPACK_IMPORTED_MODULE_2__.mirrorEl.value.remove();
-    (_b = _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value) === null || _b === void 0 ? void 0 : _b.style.removeProperty("border-left");
-    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value.style.opacity = "1";
-    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.clickSuppressedByDrag.value = true;
+    const list = document.getElementById('todo-list');
+    //  드롭이 리스트 영역 밖이면 취소 처리
+    if ((0,_utils_dragUtils__WEBPACK_IMPORTED_MODULE_1__.isOutsideListArea)(e.clientX, e.clientY, list)) {
+        // 직접 draggingEl 원래 자리로 복구
+        if (draggingEl) {
+            const list = document.getElementById("todo-list");
+            list.insertBefore(draggingEl, originalNextSibling); // nextSibling이 null이면 자동으로 맨 끝으로
+        }
+        cancelDrag(true);
+        console.log("todo 드래그앤드롭 취소");
+        return;
+    }
+    // 정상 드롭 처리
+    if (mirrorEl && mirrorEl.parentNode) {
+        mirrorEl.parentNode.removeChild(mirrorEl);
+        mirrorEl = null;
+    }
+    if (targetEl) {
+        movePreview();
+        console.log("todo 드래그앤드롭");
+    }
+    clickSuppressedByDrag = true;
+    draggingEl.style.opacity = '1';
     cleanupDrag();
+    (0,_utils_dragUtils__WEBPACK_IMPORTED_MODULE_1__.clearPreviewTimer)(previewTimer);
 }
-function handleKeyDown(e) {
-    if (e.key === "Escape") {
-        var list = document.getElementById("todo-list");
-        if (_state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value && _state_dragState__WEBPACK_IMPORTED_MODULE_2__.originalNextSibling.value)
-            list.insertBefore(_state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value, _state_dragState__WEBPACK_IMPORTED_MODULE_2__.originalNextSibling.value);
-        cleanupDrag();
-        _state_dragState__WEBPACK_IMPORTED_MODULE_2__.clickSuppressedByDrag.value = true;
+function movePreview() {
+    const list = document.getElementById('todo-list');
+    const targetRect = targetEl === null || targetEl === void 0 ? void 0 : targetEl.getBoundingClientRect();
+    const draggingRect = draggingEl === null || draggingEl === void 0 ? void 0 : draggingEl.getBoundingClientRect();
+    const isMovingDown = (draggingRect === null || draggingRect === void 0 ? void 0 : draggingRect.top) < (targetRect === null || targetRect === void 0 ? void 0 : targetRect.top);
+    const nextEl = targetEl === null || targetEl === void 0 ? void 0 : targetEl.nextSibling;
+    if (isMovingDown && nextEl !== draggingEl) {
+        list.insertBefore(draggingEl, nextEl);
     }
+    else if (!isMovingDown && targetEl !== draggingEl) {
+        list.insertBefore(draggingEl, targetEl);
+    }
+    targetEl === null || targetEl === void 0 ? void 0 : targetEl.style.removeProperty("border-left");
 }
 function getDragAfterElement(container, y) {
-    var elements = document.elementsFromPoint(window.innerWidth / 2, y);
-    return elements.find(function (el) { return el.classList.contains("todo-item"); });
+    const elements = document.elementsFromPoint(window.innerWidth / 2, y);
+    for (const el of elements) {
+        if (el.classList.contains('todo-item')) {
+            return el;
+        }
+    }
+    return null;
+}
+function handleKeyDown(e) {
+    if (e.key === 'Escape' && isDragging) {
+        if (draggingEl) {
+            const list = document.getElementById("todo-list");
+            list.insertBefore(draggingEl, originalNextSibling); // nextSibling이 null이면 자동으로 맨 끝으로
+        }
+        cancelDrag(true);
+        clickSuppressedByDrag = true;
+        console.log("todo 드래그앤드롭 취소");
+    }
 }
 function cleanupDrag() {
-    (0,_state_dragState__WEBPACK_IMPORTED_MODULE_2__.resetDragState)();
-    document.removeEventListener("mousemove", handleMouseMove);
-    document.removeEventListener("mouseup", handleMouseUp);
-    document.removeEventListener("keydown", handleKeyDown);
-}
-
-
-/***/ }),
-
-/***/ "./src/state/dragState.ts":
-/*!********************************!*\
-  !*** ./src/state/dragState.ts ***!
-  \********************************/
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   clickSuppressedByDrag: () => (/* binding */ clickSuppressedByDrag),
-/* harmony export */   dragStartX: () => (/* binding */ dragStartX),
-/* harmony export */   dragStartY: () => (/* binding */ dragStartY),
-/* harmony export */   draggingEl: () => (/* binding */ draggingEl),
-/* harmony export */   isDragging: () => (/* binding */ isDragging),
-/* harmony export */   isMouseDown: () => (/* binding */ isMouseDown),
-/* harmony export */   mirrorEl: () => (/* binding */ mirrorEl),
-/* harmony export */   originalNextSibling: () => (/* binding */ originalNextSibling),
-/* harmony export */   previewMoved: () => (/* binding */ previewMoved),
-/* harmony export */   previewTimer: () => (/* binding */ previewTimer),
-/* harmony export */   resetDragState: () => (/* binding */ resetDragState),
-/* harmony export */   targetEl: () => (/* binding */ targetEl)
-/* harmony export */ });
-var draggingEl = { value: null };
-var isDragging = { value: false };
-var targetEl = { value: null };
-var mirrorEl = { value: null };
-var previewTimer = { value: null };
-var isMouseDown = { value: false };
-var dragStartX = { value: 0 };
-var dragStartY = { value: 0 };
-var clickSuppressedByDrag = { value: false };
-var originalNextSibling = { value: null };
-var previewMoved = { value: false };
-function resetDragState() {
-    draggingEl.value = null;
-    isDragging.value = false;
-    targetEl.value = null;
-    mirrorEl.value = null;
-    previewTimer.value = null;
-    isMouseDown.value = false;
-    dragStartX.value = 0;
-    dragStartY.value = 0;
-    clickSuppressedByDrag.value = false;
-    originalNextSibling.value = null;
-    previewMoved.value = false;
+    isDragging = false;
+    draggingEl = null;
+    targetEl = null;
+    document.removeEventListener('mousemove', handleMouseMove);
+    document.removeEventListener('mouseup', handleMouseUp);
+    document.removeEventListener('keydown', handleKeyDown);
 }
 
 
@@ -450,6 +485,7 @@ function resetDragState() {
 __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   clearPreviewTimer: () => (/* binding */ clearPreviewTimer),
+/* harmony export */   isOutsideListArea: () => (/* binding */ isOutsideListArea),
 /* harmony export */   updateMirrorPosition: () => (/* binding */ updateMirrorPosition)
 /* harmony export */ });
 function clearPreviewTimer(timer) {
@@ -463,6 +499,13 @@ function updateMirrorPosition(x, y, mirrorEl) {
         return;
     mirrorEl.style.left = x + 10 + 'px';
     mirrorEl.style.top = y + 10 + 'px';
+}
+function isOutsideListArea(clientX, clientY, listEl) {
+    const rect = listEl.getBoundingClientRect();
+    return (clientX < rect.left ||
+        clientX > rect.right ||
+        clientY < rect.top ||
+        clientY > rect.bottom);
 }
 
 
@@ -538,16 +581,16 @@ __webpack_require__.r(__webpack_exports__);
 
 
 function init() {
-    var app = document.getElementById('app');
+    const app = document.getElementById('app');
     if (!app) {
         console.error('App root element not found!');
         return;
     }
-    var container = document.createElement('div');
+    const container = document.createElement('div');
     container.className = 'todo-container';
-    var inputSection = (0,_components_input__WEBPACK_IMPORTED_MODULE_0__.renderInput)(); // 입력부
-    var listSection = (0,_components_list__WEBPACK_IMPORTED_MODULE_1__.renderList)(); // 목록 출력부
-    var infoSection = (0,_components_info__WEBPACK_IMPORTED_MODULE_2__.renderInfo)(); // 정보 출력부
+    const inputSection = (0,_components_input__WEBPACK_IMPORTED_MODULE_0__.renderInput)(); // 입력부
+    const listSection = (0,_components_list__WEBPACK_IMPORTED_MODULE_1__.renderList)(); // 목록 출력부
+    const infoSection = (0,_components_info__WEBPACK_IMPORTED_MODULE_2__.renderInfo)(); // 정보 출력부
     container.appendChild(inputSection);
     container.appendChild(listSection);
     container.appendChild(infoSection);
