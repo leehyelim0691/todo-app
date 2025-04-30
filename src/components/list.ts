@@ -12,6 +12,8 @@ let isMouseDown = false;
 let dragStartX = 0;
 let dragStartY = 0;
 const DRAG_THRESHOLD = 5;
+let clickSuppressedByDrag = false;
+
 
 export function renderList(): HTMLElement {
 	const list = document.createElement('ul');
@@ -42,6 +44,12 @@ export function setupInputHandler() {
 
 					li.addEventListener('click', (e: MouseEvent): void => {
 						if ((e.target as HTMLElement).tagName === 'BUTTON') return;
+
+						// 드래그 후 발생한 클릭이면 막기
+						if (clickSuppressedByDrag) {
+							clickSuppressedByDrag = false; // 다음 클릭부터는 정상 처리
+							return;
+						}
 
 						span.classList.toggle('completed');
 						const isCompleted = span.classList.contains('completed');
@@ -175,7 +183,7 @@ function cancelDrag(fullCancel = false) {
 		targetEl.style.borderLeft = '';
 	}
 
-	// mirror는 진짜 드래그를 "완전히" 취소할 때만 없애기
+	// mirror 는 진짜 드래그를 "완전히" 취소할 때만 없애기
 	if (fullCancel && mirrorEl && mirrorEl.parentNode) {
 		mirrorEl.parentNode.removeChild(mirrorEl);
 		mirrorEl = null;
@@ -243,33 +251,56 @@ function handleMouseMove(e: MouseEvent) {
 		clearPreviewTimer();
 		previewTimer = window.setTimeout(() => {
 			if (targetEl && draggingEl) {
-				// 이동하기 전에 현재 targetEl의 border를 지우기
+				// 기존 강조 제거
 				targetEl.style.borderLeft = '';
 
 				const list = document.getElementById('todo-list') as HTMLElement;
+				const targetRect = targetEl.getBoundingClientRect();
+				const draggingRect = draggingEl.getBoundingClientRect();
 
-				if (targetEl.nextSibling) {
-					list.insertBefore(draggingEl, targetEl.nextSibling);
-				} else {
-					list.appendChild(draggingEl);
+				// 위로 드래그 중이면 targetEl 앞에 넣고
+				// 아래로 드래그 중이면 targetEl 다음에 넣기
+				const isMovingDown = draggingRect.top < targetRect.top;
+				const nextEl = targetEl.nextSibling;
+
+				if (isMovingDown && nextEl !== draggingEl) {
+					list.insertBefore(draggingEl, nextEl);
+				} else if (!isMovingDown && targetEl !== draggingEl) {
+					list.insertBefore(draggingEl, targetEl);
 				}
 
-				// targetEl을 draggingEl로 새로 잡기
-				targetEl = draggingEl;
 
-				// draggingEl(=새로운 targetEl)에는 다시 초록색 선
+				// 새로운 위치에 강조 다시 적용
+				targetEl = draggingEl;
 				targetEl.style.borderLeft = '4px solid limegreen';
 			}
 		}, 2000);
+
 	}
 }
 
-function handleMouseUp() {
+function handleMouseUp(e : MouseEvent) {
 	if (!isDragging || !draggingEl) {
 		console.log("todo 드래그앤드롭 취소");
 		return;
 	}
 
+	const list = document.getElementById('todo-list') as HTMLElement;
+	const listRect = list.getBoundingClientRect();
+
+	//  드롭이 리스트 영역 밖이면 취소 처리
+	if (
+		e.clientX < listRect.left ||
+		e.clientX > listRect.right ||
+		e.clientY < listRect.top ||
+		e.clientY > listRect.bottom
+	) {
+		cancelDrag(true);
+		console.log("todo 드래그앤드롭 취소");
+		return;
+	}
+
+	// 정상 드롭 처리
 	if (mirrorEl && mirrorEl.parentNode) {
 		mirrorEl.parentNode.removeChild(mirrorEl);
 		mirrorEl = null;
@@ -277,17 +308,24 @@ function handleMouseUp() {
 
 	if (targetEl) {
 		const list = document.getElementById('todo-list') as HTMLElement;
+		const targetRect = targetEl.getBoundingClientRect();
+		const draggingRect = draggingEl.getBoundingClientRect();
 
-		if (targetEl.nextSibling) {
-			list.insertBefore(draggingEl, targetEl.nextSibling);
-		} else {
-			list.appendChild(draggingEl);
+		const isMovingDown = draggingRect.top < targetRect.top;
+		const nextEl = targetEl.nextSibling;
+
+		if (isMovingDown && nextEl !== draggingEl) {
+			list.insertBefore(draggingEl, nextEl);
+		} else if (!isMovingDown && targetEl !== draggingEl) {
+			list.insertBefore(draggingEl, targetEl);
 		}
 
 		targetEl.style.borderLeft = '';
-
-		console.log("todo 드래그앤드롭")
+		console.log("todo 드래그앤드롭");
 	}
+
+
+	clickSuppressedByDrag = true;
 
 	draggingEl.style.opacity = '1';
 	isDragging = false;
@@ -316,6 +354,7 @@ function getDragAfterElement(container: HTMLElement, y: number): HTMLElement | n
 function handleKeyDown(e: KeyboardEvent) {
 	if (e.key === 'Escape' && isDragging) {
 		cancelDrag(true);
+		clickSuppressedByDrag = true;
 		console.log("todo 드래그앤드롭 취소");
 	}
 }
