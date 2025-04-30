@@ -142,6 +142,7 @@ function setupClearCompletedHandler() {
                 list.removeChild(item);
             }
         });
+        console.log("todo 완료항목 삭제");
         applyCurrentFilter();
         updateItemsLeft();
         updateClearCompletedButton();
@@ -187,247 +188,281 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   sortList: () => (/* binding */ sortList)
 /* harmony export */ });
 /* harmony import */ var _info__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./info */ "./src/components/info.ts");
+/* harmony import */ var _utils_dragUtils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../utils/dragUtils */ "./src/utils/dragUtils.ts");
+/* harmony import */ var _state_dragState__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../state/dragState */ "./src/state/dragState.ts");
+var __spreadArray = (undefined && undefined.__spreadArray) || function (to, from, pack) {
+    if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
+        if (ar || !(i in from)) {
+            if (!ar) ar = Array.prototype.slice.call(from, 0, i);
+            ar[i] = from[i];
+        }
+    }
+    return to.concat(ar || Array.prototype.slice.call(from));
+};
+
+
 
 var todoIdCounter = 0;
-var draggingEl = null;
-var isDragging = false;
-var targetEl = null;
-var mirrorEl = null;
-var previewTimer = null;
+var DRAG_THRESHOLD = 5;
 function renderList() {
-    var list = document.createElement('ul');
-    list.id = 'todo-list';
+    var list = document.createElement("ul");
+    list.id = "todo-list";
     return list;
 }
 function setupInputHandler() {
-    var input = document.getElementById('todo-input');
-    var list = document.getElementById('todo-list');
-    if (input && list) {
-        input.addEventListener('keydown', function (event) {
-            if (event.key === 'Enter') {
-                var value = input.value.trim();
-                if (value !== '') {
-                    var li_1 = document.createElement('li');
-                    li_1.className = 'todo-item';
-                    li_1.dataset.id = (todoIdCounter++).toString(); // 등록 순서 저장
-                    var span_1 = document.createElement('span');
-                    span_1.textContent = value;
-                    span_1.className = 'todo-text';
-                    var deleteButton = document.createElement('button');
-                    deleteButton.textContent = '삭제';
-                    deleteButton.className = 'delete-button';
-                    li_1.addEventListener('click', function (e) {
-                        if (e.target.tagName === 'BUTTON') {
-                            return;
-                        }
-                        span_1.classList.toggle('completed');
-                        var isCompleted = span_1.classList.contains('completed');
-                        if (isCompleted) {
-                            console.log("todo 완료 토글");
-                        }
-                        else {
-                            console.log("todo 미완료 토글");
-                        }
-                        sortList();
-                        (0,_info__WEBPACK_IMPORTED_MODULE_0__.applyCurrentFilter)();
-                        (0,_info__WEBPACK_IMPORTED_MODULE_0__.updateItemsLeft)();
-                        (0,_info__WEBPACK_IMPORTED_MODULE_0__.updateClearCompletedButton)();
-                    });
-                    li_1.addEventListener('mousedown', function (e) { return startDrag(e, li_1); });
-                    deleteButton.addEventListener('click', function () {
-                        li_1.remove();
-                        console.log("todo 삭제");
-                        (0,_info__WEBPACK_IMPORTED_MODULE_0__.updateItemsLeft)();
-                        (0,_info__WEBPACK_IMPORTED_MODULE_0__.updateClearCompletedButton)();
-                    });
-                    li_1.appendChild(span_1);
-                    li_1.appendChild(deleteButton);
-                    list.prepend(li_1);
-                    input.value = '';
-                    console.log("todo 등록");
-                    (0,_info__WEBPACK_IMPORTED_MODULE_0__.updateItemsLeft)();
-                    (0,_info__WEBPACK_IMPORTED_MODULE_0__.updateClearCompletedButton)();
-                }
-            }
-        });
-    }
+    var input = document.getElementById("todo-input");
+    var list = document.getElementById("todo-list");
+    if (!input || !list)
+        return;
+    input.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+            var value = input.value.trim();
+            if (!value)
+                return;
+            createTodoItem(value);
+            input.value = "";
+        }
+    });
+}
+function createTodoItem(value) {
+    var list = document.getElementById("todo-list");
+    var li = document.createElement("li");
+    li.className = "todo-item";
+    li.dataset.id = (todoIdCounter++).toString();
+    var span = document.createElement("span");
+    span.textContent = value;
+    span.className = "todo-text";
+    var deleteButton = document.createElement("button");
+    deleteButton.textContent = "삭제";
+    deleteButton.className = "delete-button";
+    li.append(span, deleteButton);
+    list.prepend(li);
+    li.addEventListener("click", function (e) {
+        if (e.target.tagName === "BUTTON" || _state_dragState__WEBPACK_IMPORTED_MODULE_2__.clickSuppressedByDrag) {
+            _state_dragState__WEBPACK_IMPORTED_MODULE_2__.clickSuppressedByDrag.value = false;
+            return;
+        }
+        span.classList.toggle("completed");
+        sortList();
+        (0,_info__WEBPACK_IMPORTED_MODULE_0__.applyCurrentFilter)();
+        (0,_info__WEBPACK_IMPORTED_MODULE_0__.updateItemsLeft)();
+        (0,_info__WEBPACK_IMPORTED_MODULE_0__.updateClearCompletedButton)();
+    });
+    li.addEventListener("mousedown", function (e) {
+        if (span.classList.contains("completed"))
+            return;
+        _state_dragState__WEBPACK_IMPORTED_MODULE_2__.isMouseDown.value = true;
+        _state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value = li;
+        _state_dragState__WEBPACK_IMPORTED_MODULE_2__.dragStartX.value = e.clientX;
+        _state_dragState__WEBPACK_IMPORTED_MODULE_2__.dragStartY.value = e.clientY;
+        document.addEventListener("mousemove", detectDragStart);
+        document.addEventListener("mouseup", cancelDetectDragStart);
+    });
+    deleteButton.addEventListener("click", function () {
+        li.remove();
+        (0,_info__WEBPACK_IMPORTED_MODULE_0__.updateItemsLeft)();
+        (0,_info__WEBPACK_IMPORTED_MODULE_0__.updateClearCompletedButton)();
+    });
+    (0,_info__WEBPACK_IMPORTED_MODULE_0__.updateItemsLeft)();
+    (0,_info__WEBPACK_IMPORTED_MODULE_0__.updateClearCompletedButton)();
 }
 function sortList() {
-    var list = document.getElementById('todo-list');
+    var list = document.getElementById("todo-list");
     var items = Array.from(list.children);
     var activeItems = items
-        .filter(function (item) {
-        var span = item.querySelector('span');
-        return span && !span.classList.contains('completed');
-    })
-        .sort(function (a, b) {
-        var idA = Number(a.dataset.id);
-        var idB = Number(b.dataset.id);
-        return idB - idA; // id 기준 내림차순
-    });
-    var completedItems = items.filter(function (item) {
-        var span = item.querySelector('span');
-        return span && span.classList.contains('completed');
-    });
-    list.innerHTML = '';
-    activeItems.forEach(function (item) { return list.appendChild(item); });
-    completedItems.forEach(function (item) { return list.appendChild(item); });
+        .filter(function (item) { var _a; return !((_a = item.querySelector(".todo-text")) === null || _a === void 0 ? void 0 : _a.classList.contains("completed")); })
+        .sort(function (a, b) { return Number(b.dataset.id) - Number(a.dataset.id); });
+    var completedItems = items.filter(function (item) { var _a; return (_a = item.querySelector(".todo-text")) === null || _a === void 0 ? void 0 : _a.classList.contains("completed"); });
+    list.innerHTML = "";
+    __spreadArray(__spreadArray([], activeItems, true), completedItems, true).forEach(function (item) { return list.appendChild(item); });
 }
-function startDrag(e, el) {
-    if (e.target.tagName === 'BUTTON')
+function detectDragStart(e) {
+    if (!_state_dragState__WEBPACK_IMPORTED_MODULE_2__.isMouseDown.value || !_state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value)
         return;
-    var span = el.querySelector('.todo-text');
-    if (span === null || span === void 0 ? void 0 : span.classList.contains('completed')) {
-        return; // 완료된 항목이면 드래그 시작 안함
+    var dx = Math.abs(e.clientX - _state_dragState__WEBPACK_IMPORTED_MODULE_2__.dragStartX.value);
+    var dy = Math.abs(e.clientY - _state_dragState__WEBPACK_IMPORTED_MODULE_2__.dragStartY.value);
+    if (dx > DRAG_THRESHOLD || dy > DRAG_THRESHOLD) {
+        startDrag(e);
+        cancelDetectDragStart();
     }
-    draggingEl = el;
-    isDragging = true;
-    document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
-    document.addEventListener('keydown', handleKeyDown);
-    el.style.opacity = '0.3';
-    mirrorEl = el.cloneNode(true);
-    mirrorEl.classList.add('mirror');
-    var rect = el.getBoundingClientRect();
-    mirrorEl.style.width = rect.width + 'px';
-    mirrorEl.style.height = rect.height + 'px';
-    document.body.appendChild(mirrorEl);
-    updateMirrorPosition(e.clientX, e.clientY); // 시작 위치 잡기
 }
-function cancelDrag(fullCancel) {
-    if (fullCancel === void 0) { fullCancel = false; }
-    if (!isDragging || !draggingEl)
-        return;
-    if (targetEl) {
-        targetEl.style.borderLeft = '';
-    }
-    // mirror는 진짜 드래그를 "완전히" 취소할 때만 없애기
-    if (fullCancel && mirrorEl && mirrorEl.parentNode) {
-        mirrorEl.parentNode.removeChild(mirrorEl);
-        mirrorEl = null;
-    }
-    if (fullCancel) {
-        draggingEl.style.opacity = '1';
-        isDragging = false;
-        draggingEl = null;
-        targetEl = null;
-        clearPreviewTimer();
-        if (fullCancel) {
-            document.removeEventListener('mousemove', handleMouseMove);
-            document.removeEventListener('mouseup', handleMouseUp);
-            document.removeEventListener('keydown', handleKeyDown);
-        }
-    }
+function cancelDetectDragStart() {
+    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.isMouseDown.value = false;
+    document.removeEventListener("mousemove", detectDragStart);
+    document.removeEventListener("mouseup", cancelDetectDragStart);
+}
+function startDrag(e) {
+    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.originalNextSibling.value = _state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value.nextSibling;
+    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.isDragging.value = true;
+    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value.style.opacity = "0.3";
+    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.mirrorEl.value = _state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value.cloneNode(true);
+    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.mirrorEl.value.classList.add("mirror");
+    var rect = _state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value.getBoundingClientRect();
+    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.mirrorEl.value.style.width = "".concat(rect.width, "px");
+    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.mirrorEl.value.style.height = "".concat(rect.height, "px");
+    document.body.appendChild(_state_dragState__WEBPACK_IMPORTED_MODULE_2__.mirrorEl.value);
+    (0,_utils_dragUtils__WEBPACK_IMPORTED_MODULE_1__.updateMirrorPosition)(e.clientX, e.clientY, _state_dragState__WEBPACK_IMPORTED_MODULE_2__.mirrorEl.value);
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+    document.addEventListener("keydown", handleKeyDown);
 }
 function handleMouseMove(e) {
-    if (!isDragging || !draggingEl)
+    var _a, _b;
+    if (!_state_dragState__WEBPACK_IMPORTED_MODULE_2__.isDragging.value || !_state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value)
         return;
-    if (mirrorEl) {
-        updateMirrorPosition(e.clientX, e.clientY);
-    }
-    var list = document.getElementById('todo-list');
-    var listRect = list.getBoundingClientRect(); // 리스트 위치 정보 가져오기
-    // 리스트 영역 벗어났는지 체크
-    if (e.clientX < listRect.left ||
-        e.clientX > listRect.right ||
-        e.clientY < listRect.top ||
-        e.clientY > listRect.bottom) {
-        cancelDrag(false);
+    (0,_utils_dragUtils__WEBPACK_IMPORTED_MODULE_1__.updateMirrorPosition)(e.clientX, e.clientY, _state_dragState__WEBPACK_IMPORTED_MODULE_2__.mirrorEl.value);
+    var list = document.getElementById("todo-list");
+    var rect = list.getBoundingClientRect();
+    if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
+        (_a = _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value) === null || _a === void 0 ? void 0 : _a.style.removeProperty("border-left");
+        _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value = null;
+        (0,_utils_dragUtils__WEBPACK_IMPORTED_MODULE_1__.clearPreviewTimer)(_state_dragState__WEBPACK_IMPORTED_MODULE_2__.previewTimer.value);
         return;
     }
     var afterElement = getDragAfterElement(list, e.clientY);
-    // target 바뀌면
-    if (targetEl && targetEl !== afterElement) {
-        targetEl.style.borderLeft = '';
-        clearPreviewTimer(); // 타이머 초기화
+    if (_state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value && _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value !== afterElement) {
+        _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value.style.removeProperty("border-left");
+        (0,_utils_dragUtils__WEBPACK_IMPORTED_MODULE_1__.clearPreviewTimer)(_state_dragState__WEBPACK_IMPORTED_MODULE_2__.previewTimer.value);
     }
-    targetEl = afterElement;
-    // 미완료된 항목만 target 으로 선택
-    if (targetEl) {
-        targetEl.style.borderLeft = ''; // 이전에 있던 강조 제거
-        var span = targetEl.querySelector('.todo-text');
-        if (span === null || span === void 0 ? void 0 : span.classList.contains('completed')) {
-            targetEl = null;
-            return;
-        }
-        targetEl.style.borderLeft = '4px solid limegreen';
-        // 프리뷰용 타이머 설정
-        clearPreviewTimer();
-        previewTimer = window.setTimeout(function () {
-            if (targetEl && draggingEl) {
-                // 이동하기 전에 현재 targetEl의 border를 지우기
-                targetEl.style.borderLeft = '';
-                var list_1 = document.getElementById('todo-list');
-                if (targetEl.nextSibling) {
-                    list_1.insertBefore(draggingEl, targetEl.nextSibling);
-                }
-                else {
-                    list_1.appendChild(draggingEl);
-                }
-                // targetEl을 draggingEl로 새로 잡기
-                targetEl = draggingEl;
-                // draggingEl(=새로운 targetEl)에는 다시 초록색 선
-                targetEl.style.borderLeft = '4px solid limegreen';
-            }
-        }, 2000);
+    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value = afterElement;
+    if (_state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value && !((_b = _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value.querySelector(".todo-text")) === null || _b === void 0 ? void 0 : _b.classList.contains("completed"))) {
+        _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value.style.borderLeft = "4px solid limegreen";
+        (0,_utils_dragUtils__WEBPACK_IMPORTED_MODULE_1__.clearPreviewTimer)(_state_dragState__WEBPACK_IMPORTED_MODULE_2__.previewTimer.value);
+        _state_dragState__WEBPACK_IMPORTED_MODULE_2__.previewTimer.value = window.setTimeout(function () { return movePreview(); }, 2000);
     }
 }
-function handleMouseUp() {
-    if (!isDragging || !draggingEl) {
-        console.log("todo 드래그앤드롭 취소");
+function movePreview() {
+    if (!_state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value || !_state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value)
+        return;
+    var list = document.getElementById("todo-list");
+    var targetRect = _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value.getBoundingClientRect();
+    var draggingRect = _state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value.getBoundingClientRect();
+    var isMovingDown = draggingRect.top < targetRect.top;
+    var nextEl = _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value.nextSibling;
+    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value.style.removeProperty("border-left");
+    if (isMovingDown && nextEl !== _state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value) {
+        list.insertBefore(_state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value, nextEl);
+    }
+    else if (!isMovingDown && _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value !== _state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value) {
+        list.insertBefore(_state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value, _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value);
+    }
+    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value = _state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value;
+    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value.style.borderLeft = "4px solid limegreen";
+    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.previewMoved.value = true;
+}
+function handleMouseUp(e) {
+    var _a, _b;
+    if (!_state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value)
+        return;
+    var list = document.getElementById("todo-list");
+    var rect = list.getBoundingClientRect();
+    if (e.clientX < rect.left || e.clientX > rect.right || e.clientY < rect.top || e.clientY > rect.bottom) {
+        if (_state_dragState__WEBPACK_IMPORTED_MODULE_2__.originalNextSibling.value)
+            list.insertBefore(_state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value, _state_dragState__WEBPACK_IMPORTED_MODULE_2__.originalNextSibling.value);
+        cleanupDrag();
         return;
     }
-    if (mirrorEl && mirrorEl.parentNode) {
-        mirrorEl.parentNode.removeChild(mirrorEl);
-        mirrorEl = null;
+    if ((_a = _state_dragState__WEBPACK_IMPORTED_MODULE_2__.mirrorEl.value) === null || _a === void 0 ? void 0 : _a.parentNode)
+        _state_dragState__WEBPACK_IMPORTED_MODULE_2__.mirrorEl.value.remove();
+    (_b = _state_dragState__WEBPACK_IMPORTED_MODULE_2__.targetEl.value) === null || _b === void 0 ? void 0 : _b.style.removeProperty("border-left");
+    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value.style.opacity = "1";
+    _state_dragState__WEBPACK_IMPORTED_MODULE_2__.clickSuppressedByDrag.value = true;
+    cleanupDrag();
+}
+function handleKeyDown(e) {
+    if (e.key === "Escape") {
+        var list = document.getElementById("todo-list");
+        if (_state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value && _state_dragState__WEBPACK_IMPORTED_MODULE_2__.originalNextSibling.value)
+            list.insertBefore(_state_dragState__WEBPACK_IMPORTED_MODULE_2__.draggingEl.value, _state_dragState__WEBPACK_IMPORTED_MODULE_2__.originalNextSibling.value);
+        cleanupDrag();
+        _state_dragState__WEBPACK_IMPORTED_MODULE_2__.clickSuppressedByDrag.value = true;
     }
-    if (targetEl) {
-        var list = document.getElementById('todo-list');
-        if (targetEl.nextSibling) {
-            list.insertBefore(draggingEl, targetEl.nextSibling);
-        }
-        else {
-            list.appendChild(draggingEl);
-        }
-        targetEl.style.borderLeft = '';
-        console.log("todo 드래그앤드롭");
-    }
-    draggingEl.style.opacity = '1';
-    isDragging = false;
-    draggingEl = null;
-    targetEl = null;
-    document.removeEventListener('mousemove', handleMouseMove);
-    document.removeEventListener('mouseup', handleMouseUp);
-    document.removeEventListener('keydown', handleKeyDown);
-    clearPreviewTimer();
 }
 function getDragAfterElement(container, y) {
     var elements = document.elementsFromPoint(window.innerWidth / 2, y);
-    for (var _i = 0, elements_1 = elements; _i < elements_1.length; _i++) {
-        var el = elements_1[_i];
-        if (el.classList.contains('todo-item')) {
-            return el;
-        }
+    return elements.find(function (el) { return el.classList.contains("todo-item"); });
+}
+function cleanupDrag() {
+    (0,_state_dragState__WEBPACK_IMPORTED_MODULE_2__.resetDragState)();
+    document.removeEventListener("mousemove", handleMouseMove);
+    document.removeEventListener("mouseup", handleMouseUp);
+    document.removeEventListener("keydown", handleKeyDown);
+}
+
+
+/***/ }),
+
+/***/ "./src/state/dragState.ts":
+/*!********************************!*\
+  !*** ./src/state/dragState.ts ***!
+  \********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   clickSuppressedByDrag: () => (/* binding */ clickSuppressedByDrag),
+/* harmony export */   dragStartX: () => (/* binding */ dragStartX),
+/* harmony export */   dragStartY: () => (/* binding */ dragStartY),
+/* harmony export */   draggingEl: () => (/* binding */ draggingEl),
+/* harmony export */   isDragging: () => (/* binding */ isDragging),
+/* harmony export */   isMouseDown: () => (/* binding */ isMouseDown),
+/* harmony export */   mirrorEl: () => (/* binding */ mirrorEl),
+/* harmony export */   originalNextSibling: () => (/* binding */ originalNextSibling),
+/* harmony export */   previewMoved: () => (/* binding */ previewMoved),
+/* harmony export */   previewTimer: () => (/* binding */ previewTimer),
+/* harmony export */   resetDragState: () => (/* binding */ resetDragState),
+/* harmony export */   targetEl: () => (/* binding */ targetEl)
+/* harmony export */ });
+var draggingEl = { value: null };
+var isDragging = { value: false };
+var targetEl = { value: null };
+var mirrorEl = { value: null };
+var previewTimer = { value: null };
+var isMouseDown = { value: false };
+var dragStartX = { value: 0 };
+var dragStartY = { value: 0 };
+var clickSuppressedByDrag = { value: false };
+var originalNextSibling = { value: null };
+var previewMoved = { value: false };
+function resetDragState() {
+    draggingEl.value = null;
+    isDragging.value = false;
+    targetEl.value = null;
+    mirrorEl.value = null;
+    previewTimer.value = null;
+    isMouseDown.value = false;
+    dragStartX.value = 0;
+    dragStartY.value = 0;
+    clickSuppressedByDrag.value = false;
+    originalNextSibling.value = null;
+    previewMoved.value = false;
+}
+
+
+/***/ }),
+
+/***/ "./src/utils/dragUtils.ts":
+/*!********************************!*\
+  !*** ./src/utils/dragUtils.ts ***!
+  \********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   clearPreviewTimer: () => (/* binding */ clearPreviewTimer),
+/* harmony export */   updateMirrorPosition: () => (/* binding */ updateMirrorPosition)
+/* harmony export */ });
+function clearPreviewTimer(timer) {
+    if (timer !== null) {
+        clearTimeout(timer);
     }
     return null;
 }
-function handleKeyDown(e) {
-    if (e.key === 'Escape' && isDragging) {
-        cancelDrag(true);
-        console.log("todo 드래그앤드롭 취소");
-    }
-}
-function updateMirrorPosition(x, y) {
+function updateMirrorPosition(x, y, mirrorEl) {
     if (!mirrorEl)
         return;
     mirrorEl.style.left = x + 10 + 'px';
     mirrorEl.style.top = y + 10 + 'px';
-}
-function clearPreviewTimer() {
-    if (previewTimer !== null) {
-        clearTimeout(previewTimer);
-        previewTimer = null;
-    }
 }
 
 
